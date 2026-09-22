@@ -141,6 +141,53 @@ export function QuoteModal() {
 
       const directWaUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(lines.join('\n'))}`;
 
+      // Persist locally for immediate availability in Admin Portal
+      try {
+        if (typeof window !== 'undefined') {
+          const newQuote = {
+            id: quotationId,
+            quotation_number: quoteNumber,
+            customer_name: formData.name,
+            customer_phone: formData.phone,
+            customer_email: formData.email,
+            customer_company: formData.company,
+            customer_location: formData.location || 'Visakhapatnam',
+            subtotal: estimatedTotal,
+            discount_total: 0,
+            grand_total: estimatedTotal,
+            status: 'GENERATED',
+            is_bulk: itemCount > 5,
+            valid_until: new Date(Date.now() + 15 * 86400000).toISOString(),
+            created_at: new Date().toISOString(),
+            items: items.map((i, idx) => {
+              const unitPrice = i.product.reference_price || 0;
+              const brand =
+                (i.product as any).brand?.name ||
+                (i.product.brand_id?.toLowerCase().includes('blue') ? 'Blue Star' : 'Rockwell');
+              return {
+                id: `qi-${Date.now()}-${idx}`,
+                product_name: i.product.product_name,
+                model_number: i.product.model_number || 'N/A',
+                brand_name: brand,
+                quantity: i.quantity,
+                unit_price: unitPrice,
+                discount_percent: 0,
+                total_price: unitPrice * i.quantity,
+              };
+            }),
+            services: [],
+          };
+          const raw = localStorage.getItem('tanmayee_submitted_quotations');
+          const existing = raw ? JSON.parse(raw) : [];
+          localStorage.setItem(
+            'tanmayee_submitted_quotations',
+            JSON.stringify([newQuote, ...existing])
+          );
+        }
+      } catch (storageErr) {
+        console.error('Failed to cache quotation locally:', storageErr);
+      }
+
       // Allow animations to play through smoothly
       setTimeout(() => {
         setSuccessData({

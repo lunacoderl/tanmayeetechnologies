@@ -33,6 +33,39 @@ export function saveStoredOffers(offers: CommercialOffer[]): void {
   }
 }
 
+export function getStoredQuotations(): any[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem('tanmayee_submitted_quotations');
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveStoredQuotations(quotes: any[]): void {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('tanmayee_submitted_quotations', JSON.stringify(quotes));
+  }
+}
+
+export function getStoredServiceRequests(): any[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem('tanmayee_service_requests');
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveStoredServiceRequests(requests: any[]): void {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('tanmayee_service_requests', JSON.stringify(requests));
+  }
+}
+
+
 export function getAdminToken(): string | null {
   if (typeof window === 'undefined') return null;
   return localStorage.getItem('tt_admin_token');
@@ -97,187 +130,91 @@ function getAdminFallbackData<T>(endpoint: string, options: RequestInit = {}): T
     return { success: true, data: SEED_SERVICES } as T;
   }
   if (endpoint.includes('/service-requests')) {
+    let requests = getStoredServiceRequests();
+
+    // Support PATCH status update
+    if (method === 'PATCH' && endpoint.includes('/status') && options.body) {
+      try {
+        const body = JSON.parse(options.body as string);
+        const parts = endpoint.split('/');
+        const statusIdx = parts.indexOf('status');
+        const idToUpdate = statusIdx > 0 ? parts[statusIdx - 1] : parts[parts.length - 1];
+        requests = requests.map((r) =>
+          r.id === idToUpdate ? { ...r, status: body.status, updated_at: new Date().toISOString() } : r
+        );
+        saveStoredServiceRequests(requests);
+        const updated = requests.find((r) => r.id === idToUpdate);
+        return { success: true, data: updated } as T;
+      } catch (e) {
+        console.error('Failed to update service request status:', e);
+      }
+    }
+
+    if (method === 'POST' && options.body) {
+      try {
+        const newReq = JSON.parse(options.body as string);
+        if (!newReq.id) newReq.id = `sr-${Date.now()}`;
+        if (!newReq.request_number) {
+          newReq.request_number = `TT-SR-${new Date().toISOString().slice(0, 7).replace('-', '')}-${Math.floor(1000 + Math.random() * 9000)}`;
+        }
+        newReq.created_at = new Date().toISOString();
+        if (!newReq.status) newReq.status = 'PENDING';
+        requests = [newReq, ...requests];
+        saveStoredServiceRequests(requests);
+        return { success: true, data: newReq } as T;
+      } catch (e) {
+        console.error('Failed to create service request:', e);
+      }
+    }
+
     return {
       success: true,
-      data: [
-        {
-          id: 'sr-001',
-          request_number: 'TT-SR-202609-0001',
-          service_id: 's0000001-0000-0000-0000-000000000004',
-          service_name: 'Annual Maintenance Contract (AMC)',
-          customer_name: 'Rahul Sharma',
-          customer_phone: '+91 93901 15553',
-          customer_email: 'rahul@apexhotelvizag.com',
-          customer_company: 'Apex Grand Luxury Hotel & Suites',
-          equipment_details: '14 Blue Star Cassette ACs (3 Ton), 4 Rockwell Deep Freezers',
-          status: 'PENDING',
-          preferred_date: '2026-09-25',
-          notes: 'Looking for a comprehensive 1-year AMC with quarterly preventive visits and emergency breakdown cover at Beach Road property.',
-          created_at: '2026-09-21T10:30:00Z',
-        },
-        {
-          id: 'sr-002',
-          request_number: 'TT-SR-202609-0002',
-          service_id: 's0000001-0000-0000-0000-000000000001',
-          service_name: 'Commercial AC Installation',
-          customer_name: 'Dr. Vikram Varma',
-          customer_phone: '+91 98480 23456',
-          customer_email: 'vikram@healthcityvizag.org',
-          customer_company: 'Apollo & Health City Super Speciality Hospital',
-          equipment_details: '8 units of Blue Star Inverter Split AC 2 Ton (5 Star)',
-          status: 'IN_PROGRESS',
-          preferred_date: '2026-09-24',
-          notes: 'Installation in ICU and surgical recovery wards. Needs hospital-grade precision piping and nitrogen testing in Arilova.',
-          created_at: '2026-09-20T14:15:00Z',
-        },
-        {
-          id: 'sr-003',
-          request_number: 'TT-SR-202609-0003',
-          service_id: 's0000001-0000-0000-0000-000000000002',
-          service_name: 'Refrigeration System Repair',
-          customer_name: 'Sunita Reddy',
-          customer_phone: '+91 94401 78910',
-          customer_email: 'sunita@freshmartpm.in',
-          customer_company: 'Fresh Delight Supermarket PM Palem',
-          equipment_details: 'Rockwell 500L Double Door Visi Cooler (Model: SC500F)',
-          status: 'COMPLETED',
-          preferred_date: '2026-09-18',
-          notes: 'Thermostat sensor calibrated and fan motor serviced at Madhurawada outlet.',
-          created_at: '2026-09-17T09:00:00Z',
-        },
-      ],
-      pagination: { page: 1, limit: 20, total: 3, totalPages: 1 },
+      data: requests,
+      pagination: { page: 1, limit: 50, total: requests.length, totalPages: 1 },
     } as T;
   }
   if (endpoint.includes('/quotations')) {
+    let quotations = getStoredQuotations();
+
+    // Support PATCH status update
+    if (method === 'PATCH' && endpoint.includes('/status') && options.body) {
+      try {
+        const body = JSON.parse(options.body as string);
+        const parts = endpoint.split('/');
+        const statusIdx = parts.indexOf('status');
+        const idToUpdate = statusIdx > 0 ? parts[statusIdx - 1] : parts[parts.length - 1];
+        quotations = quotations.map((q) =>
+          q.id === idToUpdate ? { ...q, status: body.status, updated_at: new Date().toISOString() } : q
+        );
+        saveStoredQuotations(quotations);
+        const updated = quotations.find((q) => q.id === idToUpdate);
+        return { success: true, data: updated } as T;
+      } catch (e) {
+        console.error('Failed to update quotation status:', e);
+      }
+    }
+
+    if (method === 'POST' && options.body) {
+      try {
+        const newQuote = JSON.parse(options.body as string);
+        if (!newQuote.id) newQuote.id = `q-${Date.now()}`;
+        if (!newQuote.quotation_number) {
+          newQuote.quotation_number = `TT-Q-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`;
+        }
+        newQuote.created_at = new Date().toISOString();
+        if (!newQuote.status) newQuote.status = 'GENERATED';
+        quotations = [newQuote, ...quotations];
+        saveStoredQuotations(quotations);
+        return { success: true, data: newQuote } as T;
+      } catch (e) {
+        console.error('Failed to create quotation:', e);
+      }
+    }
+
     return {
       success: true,
-      data: [
-        {
-          id: 'q-001',
-          quotation_number: 'TT-Q-20260922-0001',
-          customer_name: 'Anand Rao Kulkarni',
-          customer_phone: '+91 98450 67890',
-          customer_email: 'procurement@kulkarnigroup.in',
-          customer_company: 'Kulkarni Port Logistics & Warehousing Park',
-          customer_location: 'Autonagar Industrial Corridor, Gajuwaka, Visakhapatnam',
-          subtotal: 785000,
-          discount_total: 62800,
-          grand_total: 722200,
-          status: 'SENT',
-          is_bulk: true,
-          valid_until: '2026-10-07T00:00:00Z',
-          created_at: '2026-09-22T08:30:00Z',
-          items: [
-            {
-              id: 'qi-1',
-              product_name: 'Blue Star Inverter Split AC 2.0 Ton 5 Star',
-              model_number: 'IA524PKU',
-              brand_name: 'Blue Star',
-              quantity: 12,
-              unit_price: 54500,
-              discount_percent: 8,
-              total_price: 601680,
-            },
-            {
-              id: 'qi-2',
-              product_name: 'Rockwell 500L Double Door Convertible Deep Freezer',
-              model_number: 'SFR500DGT',
-              brand_name: 'Rockwell',
-              quantity: 4,
-              unit_price: 38500,
-              discount_percent: 8,
-              total_price: 141640,
-            },
-          ],
-          services: [
-            {
-              id: 'qs-1',
-              service_name: 'Comprehensive 1-Year AMC + Preventive Care',
-              price: 18000,
-            },
-          ],
-        },
-        {
-          id: 'q-002',
-          quotation_number: 'TT-Q-20260921-0002',
-          customer_name: 'Pooja Varma',
-          customer_phone: '+91 99890 45678',
-          customer_email: 'pooja@coastalflavourshospitality.com',
-          customer_company: 'Coastal Flavours Multi-Cuisine Diner & Lounge',
-          customer_location: 'Waltair Uplands, Siripuram, Visakhapatnam',
-          subtotal: 165000,
-          discount_total: 8250,
-          grand_total: 156750,
-          status: 'GENERATED',
-          is_bulk: false,
-          valid_until: '2026-10-06T00:00:00Z',
-          created_at: '2026-09-21T15:45:00Z',
-          items: [
-            {
-              id: 'qi-3',
-              product_name: 'Rockwell 400L Single Door Visi Cooler',
-              model_number: 'GVC400',
-              brand_name: 'Rockwell',
-              quantity: 2,
-              unit_price: 46000,
-              discount_percent: 5,
-              total_price: 87400,
-            },
-            {
-              id: 'qi-4',
-              product_name: 'Rockwell Commercial Bullet Ice Machine 50kg/day',
-              model_number: 'RIM-50B',
-              brand_name: 'Rockwell',
-              quantity: 1,
-              unit_price: 73000,
-              discount_percent: 5,
-              total_price: 69350,
-            },
-          ],
-          services: [],
-        },
-        {
-          id: 'q-003',
-          quotation_number: 'TT-Q-20260920-0003',
-          customer_name: 'K. Subrahmanyam Raju',
-          customer_phone: '+91 94408 33445',
-          customer_email: 'procurement@srikrishnacoldstorage.com',
-          customer_company: 'Sri Krishna Cold Storage & Agro Marine Logistics',
-          customer_location: 'Gambheeram Special Agro Zone, Anandapuram, Visakhapatnam',
-          subtotal: 1240000,
-          discount_total: 148800,
-          grand_total: 1091200,
-          status: 'ACCEPTED',
-          is_bulk: true,
-          valid_until: '2026-10-05T00:00:00Z',
-          created_at: '2026-09-20T11:20:00Z',
-          items: [
-            {
-              id: 'qi-5',
-              product_name: 'Blue Star 3.0 Ton Cassette Air Conditioner',
-              model_number: 'CAC363FA',
-              brand_name: 'Blue Star',
-              quantity: 10,
-              unit_price: 92000,
-              discount_percent: 12,
-              total_price: 809600,
-            },
-            {
-              id: 'qi-6',
-              product_name: 'Rockwell Stainless Steel Water Cooler 150L',
-              model_number: 'RWC150SS',
-              brand_name: 'Rockwell',
-              quantity: 8,
-              unit_price: 40000,
-              discount_percent: 12,
-              total_price: 281600,
-            },
-          ],
-          services: [],
-        },
-      ],
-      pagination: { page: 1, limit: 20, total: 3, totalPages: 1 },
+      data: quotations,
+      pagination: { page: 1, limit: 50, total: quotations.length, totalPages: 1 },
     } as T;
   }
   if (endpoint.includes('/offers')) {
@@ -325,61 +262,44 @@ function getAdminFallbackData<T>(endpoint: string, options: RequestInit = {}): T
     } as T;
   }
   if (endpoint.includes('/analytics/dashboard')) {
+    const quotations = getStoredQuotations();
+    const highValue = quotations.filter((q) => (q.grand_total || 0) >= 100000).length;
+    const converted = quotations.filter((q) => q.status === 'ACCEPTED' || q.status === 'CONVERTED').length;
+    const totalQuotes = quotations.length;
+
     return {
       success: true,
       data: {
-        total_sessions: 1420,
-        total_events: 8900,
-        high_value_leads: 48,
-        conversions: 36,
-        conversion_rate: '14.2%',
+        total_sessions: totalQuotes > 0 ? totalQuotes * 14 : 0,
+        total_events: totalQuotes > 0 ? totalQuotes * 48 : 0,
+        high_value_leads: highValue,
+        conversions: converted,
+        conversion_rate: totalQuotes > 0 ? `${Math.round((converted / totalQuotes) * 100)}%` : '0%',
         events_breakdown: {
-          PRODUCT_VIEW: 5420,
-          SEARCH: 1240,
-          ADD_TO_CART: 680,
-          QUOTE_SUBMITTED: 180,
+          PRODUCT_VIEW: totalQuotes * 24,
+          SEARCH: totalQuotes * 12,
+          ADD_TO_CART: totalQuotes * 4,
+          QUOTE_SUBMITTED: totalQuotes,
         },
       },
     } as T;
   }
   if (endpoint.includes('/analytics/leads')) {
+    const quotations = getStoredQuotations();
+    const leads = quotations.map((q, idx) => ({
+      session_id: `sess-${q.id || idx}`,
+      lead_score: (q.grand_total || 0) > 200000 ? 95 : 78,
+      total_events: (q.items?.length || 1) * 6,
+      cart_value: q.grand_total || 0,
+      items_in_cart: q.items?.reduce((sum: number, it: any) => sum + (it.quantity || 1), 0) || 1,
+      last_active: 'Recently',
+      primary_interest: q.items?.map((it: any) => it.product_name).slice(0, 2).join(', ') || 'Commercial HVAC & Refrigeration',
+      customer_identified: `${q.customer_name}${q.customer_company ? ` (${q.customer_company})` : ''}`,
+      status: (q.grand_total || 0) > 200000 ? 'HIGH_INTENT' : 'WARM_LEAD',
+    }));
     return {
       success: true,
-      data: [
-        {
-          session_id: 'sess-8491-b2b',
-          lead_score: 95,
-          total_events: 34,
-          cart_value: 840000,
-          items_in_cart: 16,
-          last_active: '12 minutes ago',
-          primary_interest: 'Blue Star Inverter Split ACs & Cassette units',
-          customer_identified: 'Anand Rao Kulkarni (Kulkarni Port Logistics, Gajuwaka)',
-          status: 'HIGH_INTENT',
-        },
-        {
-          session_id: 'sess-8422-hosp',
-          lead_score: 88,
-          total_events: 28,
-          cart_value: 460000,
-          items_in_cart: 8,
-          last_active: '45 minutes ago',
-          primary_interest: 'Rockwell Deep Freezers & Visi Coolers',
-          customer_identified: 'Fresh Delight Supermarkets (PM Palem, Madhurawada)',
-          status: 'HIGH_INTENT',
-        },
-        {
-          session_id: 'sess-8390-inst',
-          lead_score: 76,
-          total_events: 19,
-          cart_value: 195000,
-          items_in_cart: 4,
-          last_active: '2 hours ago',
-          primary_interest: 'Rockwell Stainless Steel Water Coolers (150L & 80L)',
-          customer_identified: 'GITAM Deemed University Campus Facilities (Rushikonda, Vizag)',
-          status: 'WARM_LEAD',
-        },
-      ],
+      data: leads,
     } as T;
   }
   if (endpoint.includes('/publish')) {
@@ -404,38 +324,11 @@ function getAdminFallbackData<T>(endpoint: string, options: RequestInit = {}): T
           entity_type: 'catalog',
           entity_id: 'all',
           user_email: 'admin@tanmayeetechnologies.com',
-          created_at: '2026-09-22T08:00:00Z',
-          details: 'Refreshed published catalog materialized view with 155 active products (97 Rockwell + 58 Blue Star).',
-        },
-        {
-          id: 'audit-002',
-          action: 'UPDATE_QUOTATION_STATUS',
-          entity_type: 'quotation',
-          entity_id: 'TT-Q-20260922-0001',
-          user_email: 'admin@tanmayeetechnologies.com',
-          created_at: '2026-09-21T16:30:00Z',
-          details: 'Status updated from SENT to ACCEPTED. Customer confirmed purchase order for Port Logistics.',
-        },
-        {
-          id: 'audit-003',
-          action: 'UPDATE_PRODUCT_PRICE',
-          entity_type: 'product',
-          entity_id: 'p0000001-0000-0000-0000-000000000001',
-          user_email: 'admin@tanmayeetechnologies.com',
-          created_at: '2026-09-21T11:15:00Z',
-          details: 'Verified pricing and capacity tier specifications for Rockwell GFR250D5UC4S Convertible Green Freezer.',
-        },
-        {
-          id: 'audit-004',
-          action: 'CREATE_BULK_OFFER_RULE',
-          entity_type: 'offer',
-          entity_id: 'off-4',
-          user_email: 'admin@tanmayeetechnologies.com',
-          created_at: '2026-09-20T14:00:00Z',
-          details: 'Configured Vizag Industrial Commercial Expo Offer (Flat ₹3,000 for orders above ₹60,000).',
+          created_at: new Date().toISOString(),
+          details: `Refreshed published catalog materialized view with ${SEED_PRODUCTS.length} active products (Rockwell & Blue Star).`,
         },
       ],
-      pagination: { page: 1, limit: 20, total: 4, totalPages: 1 },
+      pagination: { page: 1, limit: 20, total: 1, totalPages: 1 },
     } as T;
   }
 

@@ -10,6 +10,7 @@ import {
   Phone,
   MessageCircle,
   ShieldCheck,
+  Wrench,
 } from 'lucide-react';
 import { adminFetch } from '../../lib/admin-api';
 import { SEED_SERVICES } from '@tanmayee/database';
@@ -226,6 +227,22 @@ export default function AdminServicesPage() {
                 </div>
               </div>
             ))}
+
+            {filteredRequests.length === 0 && (
+              <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center space-y-3 shadow-sm">
+                <div className="w-12 h-12 rounded-2xl bg-brand-50 border border-brand-100 text-brand-600 flex items-center justify-center mx-auto">
+                  <Wrench className="w-6 h-6" />
+                </div>
+                <h3 className="font-bold text-sm text-slate-900">
+                  {requests.length === 0 ? 'No Service Inquiries Yet' : 'No Matching Requests'}
+                </h3>
+                <p className="text-xs text-slate-500 max-w-md mx-auto">
+                  {requests.length === 0
+                    ? 'No AMC or breakdown repair requests have been submitted yet. Inquiries submitted by clients on the Services page will appear here with instant WhatsApp dispatch.'
+                    : 'No requests match your current search query or status filter.'}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       ) : (

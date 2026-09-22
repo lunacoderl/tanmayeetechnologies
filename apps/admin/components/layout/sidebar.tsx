@@ -50,7 +50,7 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="w-64 bg-slate-900 text-slate-300 flex flex-col justify-between shrink-0 min-h-screen border-r border-slate-800">
+    <aside className="fixed top-0 left-0 bottom-0 z-40 w-64 h-screen bg-slate-900 text-slate-300 flex flex-col justify-between border-r border-slate-800 overflow-y-auto shrink-0 select-none shadow-xl">
       <div>
         {/* Official Logo */}
         <div className="p-5 border-b border-slate-800/80 flex items-center gap-3">

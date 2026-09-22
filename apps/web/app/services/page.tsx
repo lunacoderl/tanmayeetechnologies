@@ -42,6 +42,36 @@ export default function ServicesPage() {
 
     setIsSubmitting(true);
     try {
+      const selectedService = SEED_SERVICES.find((s) => s.id === formData.service_id);
+      const newRequestRecord = {
+        id: `sr-${Date.now()}`,
+        request_number: `TT-SR-${new Date().toISOString().slice(0, 7).replace('-', '')}-${Math.floor(1000 + Math.random() * 9000)}`,
+        service_id: formData.service_id,
+        service_name: selectedService?.name || 'Annual Maintenance Contract (AMC)',
+        customer_name: formData.name,
+        customer_phone: formData.phone,
+        customer_email: formData.email,
+        customer_company: formData.company,
+        equipment_details: formData.description,
+        status: 'PENDING',
+        preferred_date: new Date().toISOString().slice(0, 10),
+        notes: formData.description,
+        created_at: new Date().toISOString(),
+      };
+
+      try {
+        if (typeof window !== 'undefined') {
+          const raw = localStorage.getItem('tanmayee_service_requests');
+          const existing = raw ? JSON.parse(raw) : [];
+          localStorage.setItem(
+            'tanmayee_service_requests',
+            JSON.stringify([newRequestRecord, ...existing])
+          );
+        }
+      } catch (storageErr) {
+        console.error('Storage save error:', storageErr);
+      }
+
       await fetchFromApi('/service-requests', {
         method: 'POST',
         body: JSON.stringify(formData),
