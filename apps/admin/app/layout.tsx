@@ -6,6 +6,16 @@ import { Sidebar } from '../components/layout/sidebar';
 export const metadata: Metadata = {
   title: 'Tanmayee Technologies — Admin Platform',
   description: 'Enterprise B2B management portal for catalogue, quotations, leads, and publishing.',
+  icons: {
+    icon: [
+      { url: '/images/tanmayee-logo.png', type: 'image/png' },
+      { url: '/favicon.ico' },
+    ],
+    shortcut: ['/images/tanmayee-logo.png'],
+    apple: [
+      { url: '/images/tanmayee-logo.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
 };
 
 export default function RootLayout({
