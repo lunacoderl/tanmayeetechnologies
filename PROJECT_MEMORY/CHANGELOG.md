@@ -4,6 +4,36 @@ All notable changes and technical implementation milestones are documented in th
 
 ---
 
+## [2026-09-23] - Streamlined Navbar, Admin Product Editor, Brand Badges & GitHub Remote Deployment
+
+### Added & Enhanced
+- **Streamlined Desktop & Mobile Navbar (`apps/web/components/layout/header.tsx`)**:
+  - Replaced the crowded 7 flat links with 4 spacious, modern navigation items:
+    1. **Products** (rich mega-dropdown featuring Blue Star Authorized Dealers badge, Rockwell Authorized Distributors badge, popular category shortcuts, and "View All 155+ Products" footer).
+    2. **Services & AMC** (direct link).
+    3. **About** (direct link).
+    4. **Contact** (direct link).
+  - Modernized search placeholder to `"Search 155+ ACs, Freezers..."` with debounced search suggestions.
+  - Re-organized mobile navigation drawer with cleanly separated brand lines and company links.
+- **Admin Product Specifications, Features, Applications & Gallery Editor (`apps/admin/components/product/product-form.tsx`)**:
+  - Full EAV matrix editor for technical specifications and dimensions (attribute name, value, unit, highlight toggle, add/delete).
+  - Key Performance Features manager (add/remove bullet points).
+  - Target Commercial Applications manager (add/remove facility type pills).
+  - Complete Media tab: primary showcase image with visual preview, and additional gallery images manager with live image previews and add/delete controls.
+  - Persistent state: saves edited products to `localStorage` key `'tanmayee_custom_products'` so edits immediately reflect in `apps/admin/app/products/page.tsx` and detail views.
+- **Brand Authorization Badges**:
+  - Blue Star: Strictly labeled **"Authorized Dealers"**.
+  - Rockwell: Strictly labeled **"Authorized Distributors"**.
+- **Spelling Correction ("Quotation")**:
+  - Fixed spelling across all components, cart pages, modals, and CTA buttons from "Quotatio" / "quotio" back to proper **"Quotation"**.
+- **DevOps, Deployment & Git**:
+  - Created `.gitignore` excluding all `.env` files and `node_modules`.
+  - Created `vercel.json` for frontend deployment with Turborepo build filter.
+  - Created `render.yaml` Blueprint for backend API deployment.
+  - Successfully committed and pushed branch `main` to `https://github.com/lunacoderl/tanmayeetechnologies.git`.
+
+---
+
 ## [2026-09-22] - Official Logo, Google Maps Integration & Alive & Interactive Animations Engine
 
 ### Added
