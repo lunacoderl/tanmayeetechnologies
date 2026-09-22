@@ -30,7 +30,7 @@ All notable changes and technical implementation milestones are documented in th
   - Created `.gitignore` excluding all `.env` files and `node_modules`.
   - Created `vercel.json` for frontend deployment with Turborepo build filter.
   - Created `render.yaml` Blueprint for backend API deployment.
-  - Successfully committed and pushed branch `main` to `https://github.com/lunacoderl/tanmayeetechnologies.git`.
+  - Successfully committed and pushed branch `main` to `https://github.com/lunacoderj/tanmayeetechnologies.git` (origin) and `https://github.com/lunacoderl/tanmayeetechnologies.git` (collaborator).
 
 ---
 
