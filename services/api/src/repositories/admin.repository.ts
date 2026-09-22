@@ -6,15 +6,15 @@ import { AdminUser, AdminAuditLog } from '@tanmayee/types';
 import { AdminRole } from '@tanmayee/config';
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
+import { config } from '../config/env';
 
-// Default initial super admin (can be customized via env / DB)
-const DEFAULT_SUPER_ADMIN_PASSWORD = process.env.ADMIN_DEFAULT_PASSWORD || 'Admin@Tanmayee2026!';
-const defaultPasswordHash = bcrypt.hashSync(DEFAULT_SUPER_ADMIN_PASSWORD, 10);
+// Default initial super admin configured strictly via environment variables
+const defaultPasswordHash = bcrypt.hashSync(config.adminPassword, 10);
 
 const inMemoryAdmins: AdminUser[] = [
   {
     id: 'a0000001-0000-0000-0000-000000000001',
-    email: 'admin@tanmayeetechnologies.com',
+    email: config.adminEmail,
     password_hash: defaultPasswordHash,
     full_name: 'Tanmayee Administrator',
     role: AdminRole.SUPER_ADMIN,

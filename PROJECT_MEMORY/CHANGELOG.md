@@ -4,6 +4,25 @@ All notable changes and technical implementation milestones are documented in th
 
 ---
 
+## [2026-09-23] - Secure Environment-Driven Admin Authentication
+
+### Added & Enhanced
+- **Environment-Driven Admin Credentials**:
+  - Added `ADMIN_EMAIL` and `ADMIN_PASSWORD` to `.env` and `apps/admin/.env.local`.
+  - Updated `.env.example` with template keys and documentation.
+  - Added `ADMIN_EMAIL` and `ADMIN_PASSWORD` to `globalEnv` in `turbo.json`.
+- **Server-Side Auth Route Handler (`apps/admin/app/api/auth/login/route.ts`)**:
+  - Implemented secure Next.js App Router Route Handler that validates submitted login credentials strictly against server-side `process.env.ADMIN_EMAIL` and `process.env.ADMIN_PASSWORD`.
+  - Guarantees credentials are never bundled into client-side JavaScript or exposed to browsers.
+  - Returns authenticated admin session token upon matching, or HTTP 401 with descriptive error message upon mismatch.
+- **Admin Login UI Security Hardening (`apps/admin/app/login/page.tsx`)**:
+  - Removed all hardcoded credentials and pre-filled inputs from component state.
+  - Form now dispatches directly to the server-side `/api/auth/login` endpoint.
+- **API Server Environment Alignment (`services/api/src/config/env.ts` & `admin.repository.ts`)**:
+  - Updated Express API auth service to consume `config.adminEmail` and `config.adminPassword` dynamically from environment variables.
+
+---
+
 ## [2026-09-23] - Robust SEO Architecture & Google Search Console Submission Ready
 
 ### Added & Enhanced

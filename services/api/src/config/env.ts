@@ -24,6 +24,10 @@ export const config = {
   jwtSecret: process.env.JWT_SECRET || 'tanmayee-dev-jwt-super-secret-key-min-32-chars!!',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
 
+  // Admin Credentials from Environment
+  adminEmail: process.env.ADMIN_EMAIL || 'admin@tanmayeetechnologies.com',
+  adminPassword: process.env.ADMIN_PASSWORD || 'tanmayeeprasad1980',
+
   // Frontend URLs for CORS
   frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3000',
   adminUrl: process.env.ADMIN_URL || 'http://localhost:3001',
