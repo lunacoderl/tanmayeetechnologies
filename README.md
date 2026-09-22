@@ -84,3 +84,12 @@ npm run dev
 - **Interactive Visuals**: Shimmering skeleton loaders, scroll reveals, and floating action dock.
 - **Admin Offers Studio**: Complete CRUD control over volume discounts, tiered pricing, and permanent/time-limited promotions.
 - **Google Maps Showroom**: Direct deep-links to the registered showroom at Plot SFS MIG-131, PM Palem, Madhurawada, Visakhapatnam.
+
+---
+
+## 👥 Contributors
+
+- **Jagadhesh Bellane** ([@lunacoderj](https://github.com/lunacoderj)) — Lead Architect & Contributor (`jagadheshbellane@gmail.com`)
+- **Tanmayee Technologies** ([@lunacoderl](https://github.com/lunacoderl)) — Project Repository & Commercial Principal
+
+See [CONTRIBUTORS.md](CONTRIBUTORS.md) for full contribution details.
