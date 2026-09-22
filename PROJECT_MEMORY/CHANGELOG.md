@@ -4,6 +4,21 @@ All notable changes and technical implementation milestones are documented in th
 
 ---
 
+## [2026-09-23] - Render Backend Runtime Fix & GitHub Multi-Account Deployment Harmonization
+
+### Fixed
+- **API Esbuild Bundling for Render Runtime (`services/api/package.json`)**:
+  - Removed `--packages=external` flag from the esbuild build script.
+  - Resolved `ERR_MODULE_NOT_FOUND` / syntax crashes where Node attempted to require uncompiled TypeScript source files (`packages/database/src/index.ts` -> `./seed-data`) from monorepo packages.
+  - Esbuild now bundles internal workspace packages (`@tanmayee/*`) directly into a self-contained, standalone `dist/server.js` (3.6 MB), which boots cleanly under standard `node services/api/dist/server.js`.
+- **API Server Host & Error Diagnostics (`services/api/src/server.ts`)**:
+  - Explicitly bound HTTP listener to host `'0.0.0.0'` (`app.listen(config.port, '0.0.0.0', ...)`) to ensure Render's ingress and health checks detect the service port.
+  - Added global `uncaughtException` and `unhandledRejection` handlers to output descriptive logs if runtime exceptions occur.
+- **Synced Git Remotes**:
+  - Pushed latest commits to both `origin` (`lunacoderj`) and `collaborator` (`lunacoderl`).
+
+---
+
 ## [2026-09-23] - Streamlined Navbar, Admin Product Editor, Brand Badges & GitHub Remote Deployment
 
 ### Added & Enhanced
