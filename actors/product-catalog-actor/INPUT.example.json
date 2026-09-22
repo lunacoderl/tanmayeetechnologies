@@ -1,0 +1,25 @@
+{
+  "batchSize": 5,
+  "batchIndex": 0,
+  "brandFilter": "all",
+  "maxConcurrency": 2,
+  "maxRequestsPerMinutePerDomain": 6,
+  "maxCandidatesPerPlatform": 3,
+  "pageTimeoutSecs": 45,
+  "maxRetries": 2,
+  "useAiExtraction": false,
+  "aiProvider": "openai",
+  "aiModel": "gpt-4o-mini",
+  "minimumConfidenceToSaveAsMatch": 0.8,
+  "saveRawEvidence": false,
+  "dryRun": false,
+  "platforms": {
+    "rockwellOfficial": true,
+    "bluestarOfficial": true,
+    "amazon": false,
+    "flipkart": false,
+    "croma": false,
+    "relianceDigital": false,
+    "googleShopping": false
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "name": "tanmayeetechnologies-platform",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "services/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "dev:web": "turbo dev --filter=@tanmayee/web",
+    "dev:admin": "turbo dev --filter=@tanmayee/admin",
+    "dev:api": "turbo dev --filter=@tanmayee/api",
+    "build:web": "turbo build --filter=@tanmayee/web",
+    "build:admin": "turbo build --filter=@tanmayee/admin",
+    "build:api": "turbo build --filter=@tanmayee/api",
+    "db:migrate": "node packages/database/migrations/run.js",
+    "db:seed": "node packages/database/seeds/run.js",
+    "import:catalog": "node scripts/import-extracted-catalog.js",
+    "crawl:pilot": "node actors/product-catalog-actor/src/main.js --pilot",
+    "crawl:batches": "node actors/product-catalog-actor/scripts/run-all-batches.js",
+    "clean": "turbo clean"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "overrides": {
+    "@types/express": "^4.17.25"
+  },
+  "packageManager": "npm@10.0.0"
+}

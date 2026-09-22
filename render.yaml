@@ -1,0 +1,36 @@
+# ============================================================================
+# Render Blueprint Configuration — Tanmayee Technologies Platform
+# ============================================================================
+
+services:
+  # ── Express / Node.js Backend API Service ───────────────────────────────
+  - type: web
+    name: tanmayee-api
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm install && npx turbo run build --filter=@tanmayee/api...
+    startCommand: node services/api/dist/server.js
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: FRONTEND_URL
+        value: https://tanmayee-web.vercel.app
+      - key: ADMIN_URL
+        value: https://tanmayee-admin.vercel.app
+      - key: CORS_ORIGINS
+        value: https://tanmayee-web.vercel.app,https://tanmayee-admin.vercel.app,http://localhost:3000,http://localhost:3001

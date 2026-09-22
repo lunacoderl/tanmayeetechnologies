@@ -1,0 +1,53 @@
+{
+  "actorSpecification": 1,
+  "name": "tanmayee-product-catalog-actor",
+  "title": "Rockwell & Blue Star Product Catalog Extractor",
+  "description": "Collects structured product specifications, high-res images, pricing, and availability for Rockwell & Blue Star catalogs with strict deterministic matching and optional AI enhancement.",
+  "version": "1.0.0",
+  "meta": {
+    "templateId": "project_empty"
+  },
+  "input": "./INPUT_SCHEMA.json",
+  "dockerfile": "./Dockerfile",
+  "storages": {
+    "dataset": {
+      "actorSpecification": 1,
+      "title": "Extracted Product Catalog Records",
+      "views": {
+        "overview": {
+          "title": "Overview",
+          "transformation": {
+            "fields": [
+              "product_id",
+              "catalog_index",
+              "brand_source_row",
+              "platform",
+              "status",
+              "match_status",
+              "match_confidence",
+              "matched_model",
+              "title",
+              "canonical_url",
+              "price.amount",
+              "timestamp"
+            ]
+          },
+          "display": {
+            "component": "table",
+            "columns": {
+              "product_id": { "label": "Product ID", "format": "text" },
+              "catalog_index": { "label": "Catalog #", "format": "number" },
+              "platform": { "label": "Platform", "format": "text" },
+              "status": { "label": "Status", "format": "text" },
+              "match_status": { "label": "Match Status", "format": "text" },
+              "match_confidence": { "label": "Confidence", "format": "number" },
+              "matched_model": { "label": "Matched Model", "format": "text" },
+              "title": { "label": "Title", "format": "text" },
+              "price.amount": { "label": "Price (₹)", "format": "number" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

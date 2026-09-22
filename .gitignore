@@ -1,0 +1,67 @@
+# ============================================================================
+# Git Ignore — Tanmayee Technologies Platform
+# ============================================================================
+
+# Dependencies
+node_modules/
+**/node_modules/
+.pnp
+.pnp.js
+
+# Environment and Secrets (CRITICAL)
+.env
+.env*
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+**/.env
+**/.env*
+!.env.example
+
+# Production Build Outputs
+.next/
+**/.next/
+dist/
+**/dist/
+build/
+out/
+*.tsbuildinfo
+
+# Turbo Cache
+.turbo/
+**/.turbo/
+
+# Apify Actor Storage and Datasets
+storage/
+apify_storage/
+**/storage/
+**/apify_storage/
+
+# Logs and Debugging
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Editor and IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Test Coverage
+coverage/
+*.lcov
+
+# Supabase Local Temp
+supabase/.temp/

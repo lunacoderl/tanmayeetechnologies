@@ -1,0 +1,156 @@
+{
+  "summary": {
+    "started_at": "2026-09-22T14:30:00.000Z",
+    "finished_at": "2026-09-22T14:32:15.000Z",
+    "total_product_inputs": 5,
+    "total_platform_attempts": 5,
+    "records_saved": 5,
+    "successful_extractions": 4,
+    "exact_matches": 3,
+    "probable_matches": 1,
+    "ambiguous_matches": 0,
+    "not_found": 1,
+    "blocked": 0,
+    "skipped": 0,
+    "failed": 0,
+    "dataset_id": "W7zK91k2pQ9m"
+  },
+  "sample_records": [
+    {
+      "run_id": "apify-run-91238",
+      "product_id": "rockwell-001-gfr250d5uc4s",
+      "catalog_index": 1,
+      "brand_source_row": 1,
+      "requested_product": {
+        "brand": "Rockwell",
+        "category": "Convertible Green Freezer",
+        "model": "GFR250D5UC4S",
+        "series": null,
+        "star_rating": null,
+        "capacity": "194 L",
+        "type": "Convertible Green Freezer"
+      },
+      "platform": "Rockwell Official Store",
+      "platform_key": "rockwellOfficial",
+      "query_used": "Rockwell GFR250D5UC4S",
+      "source_url": "https://shop.rockwell.co.in/convertible-green-freezer-194l-gfr250d5uc4s.html",
+      "canonical_url": "https://shop.rockwell.co.in/convertible-green-freezer-194l-gfr250d5uc4s.html",
+      "status": "success",
+      "match_status": "exact_match",
+      "match_confidence": 0.99,
+      "match_reasons": [
+        "Exact normalized model GFR250D5UC4S verified in listing",
+        "Capacity verified: 194 L"
+      ],
+      "matched_model": "GFR250D5UC4S",
+      "matched_sku": "GFR250D5UC4S",
+      "title": "Rockwell Convertible Green Deep Freezer 194 Litres (GFR250D5UC4S)",
+      "description": "Heavy-duty commercial convertible deep freezer with 10-year anti-corrosion warranty, 90mm PUF insulation, and up to 53% energy savings.",
+      "images": [
+        "https://shop.rockwell.co.in/media/catalog/product/g/f/gfr250d5uc4s-main.jpg",
+        "https://shop.rockwell.co.in/media/catalog/product/g/f/gfr250d5uc4s-angle.jpg"
+      ],
+      "videos": [],
+      "price": {
+        "currency": "INR",
+        "amount": 26990,
+        "display": "₹26,990",
+        "available": true
+      },
+      "mrp": {
+        "currency": "INR",
+        "amount": 33990,
+        "display": "₹33,990"
+      },
+      "offers": [],
+      "rating": 4.6,
+      "review_count": 28,
+      "specifications": {
+        "Model": "GFR250D5UC4S",
+        "Capacity": "194 L",
+        "Temperature Range": "-25°C to +8°C",
+        "Defrost Type": "Manual",
+        "Refrigerant": "R290 Eco-friendly",
+        "Dimensions (W x D x H)": "840 x 670 x 865 mm"
+      },
+      "warranty": "1 Year Comprehensive + 4 Years Compressor",
+      "manufacturer": "Rockwell Industries Ltd",
+      "availability": "In stock",
+      "extraction_method": {
+        "json_ld": true,
+        "dom": true,
+        "ai": false
+      },
+      "evidence": null,
+      "error": null,
+      "timestamp": "2026-09-22T14:31:05.120Z"
+    },
+    {
+      "run_id": "apify-run-91238",
+      "product_id": "bluestar-002-inverter-split-ac-g-series-5-star-15-ton",
+      "catalog_index": 99,
+      "brand_source_row": 2,
+      "requested_product": {
+        "brand": "Bluestar",
+        "category": "Inverter Split AC",
+        "model": null,
+        "series": "G Series",
+        "star_rating": "5 Star",
+        "capacity": "1.5 Ton",
+        "type": "Inverter Split AC"
+      },
+      "platform": "Blue Star Official Consumer",
+      "platform_key": "bluestarOfficial",
+      "query_used": "Blue Star G Series 5 Star 1.5 Ton Inverter Split AC",
+      "source_url": "https://consumer.bluestarindia.com/air-conditioners/inverter-split-ac/ia518gku",
+      "canonical_url": "https://consumer.bluestarindia.com/air-conditioners/inverter-split-ac/ia518gku",
+      "status": "success",
+      "match_status": "probable_match",
+      "match_confidence": 0.88,
+      "match_reasons": [
+        "Capacity matched: 1.5 Ton",
+        "Star rating matched: 5 Star",
+        "Series matched: G Series"
+      ],
+      "matched_model": "IA518GKU",
+      "matched_sku": "IA518GKU",
+      "title": "Blue Star 1.5 Ton 5 Star Inverter Split AC - G Series (Copper, Turbo Cool, IA518GKU)",
+      "description": "5-in-1 convertible cooling inverter split AC with acoustic jacket, nano bluprotect anti-corrosive coating, and smart climate control.",
+      "images": [
+        "https://consumer.bluestarindia.com/media/catalog/product/i/a/ia518gku-front.png"
+      ],
+      "videos": [],
+      "price": {
+        "currency": "INR",
+        "amount": 44990,
+        "display": "₹44,990",
+        "available": true
+      },
+      "mrp": {
+        "currency": "INR",
+        "amount": 68000,
+        "display": "₹68,000"
+      },
+      "offers": [],
+      "rating": 4.4,
+      "review_count": 42,
+      "specifications": {
+        "Tonnage": "1.5 Ton",
+        "BEE Star Rating": "5 Star",
+        "Series": "G Series",
+        "Condenser Coil": "100% Copper"
+      },
+      "warranty": "1 Year Machine, 5 Years PCB, 10 Years Compressor",
+      "manufacturer": "Blue Star Limited",
+      "availability": "In stock",
+      "extraction_method": {
+        "json_ld": true,
+        "dom": true,
+        "ai": false
+      },
+      "evidence": null,
+      "error": null,
+      "timestamp": "2026-09-22T14:31:55.340Z"
+    }
+  ]
+}

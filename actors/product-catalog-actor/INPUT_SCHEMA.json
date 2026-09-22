@@ -1,0 +1,154 @@
+{
+  "title": "Rockwell & Blue Star Product Catalog Extractor Input",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "batchSize": {
+      "title": "Batch Size",
+      "type": "integer",
+      "description": "Number of products to process in this run. Default is 5 for low-cost pilot runs.",
+      "default": 5,
+      "minimum": 1,
+      "maximum": 155
+    },
+    "batchIndex": {
+      "title": "Batch Index (0-based)",
+      "type": "integer",
+      "description": "0-based batch index. Batch 0 with size 5 processes items 1-5. Valid range is dynamically calculated based on selected products and batch size.",
+      "default": 0,
+      "minimum": 0
+    },
+    "brandFilter": {
+      "title": "Brand Filter",
+      "type": "string",
+      "description": "Filter the catalog by brand before batching.",
+      "editor": "select",
+      "default": "all",
+      "enum": ["all", "Rockwell", "Bluestar"],
+      "enumTitles": ["All Brands (155 products)", "Rockwell Only (97 products)", "Bluestar Only (58 products)"]
+    },
+    "startRow": {
+      "title": "Start Catalog Index (Optional)",
+      "type": "integer",
+      "description": "Specific starting 1-based catalog_index (1 to 155). Overrides batchIndex if provided.",
+      "minimum": 1,
+      "maximum": 155
+    },
+    "endRow": {
+      "title": "End Catalog Index (Optional)",
+      "type": "integer",
+      "description": "Specific ending 1-based catalog_index (1 to 155). Overrides batchIndex if provided.",
+      "minimum": 1,
+      "maximum": 155
+    },
+    "products": {
+      "title": "Custom Products Override (Optional)",
+      "type": "array",
+      "description": "Override the default canonical catalog with a custom array of products.",
+      "editor": "json"
+    },
+    "platforms": {
+      "title": "Enabled Platforms",
+      "type": "object",
+      "description": "Configure which platforms to search. Brand official sites are recommended for pilot runs.",
+      "default": {
+        "rockwellOfficial": true,
+        "bluestarOfficial": true,
+        "amazon": false,
+        "flipkart": false,
+        "croma": false,
+        "relianceDigital": false,
+        "googleShopping": false
+      },
+      "editor": "json"
+    },
+    "maxConcurrency": {
+      "title": "Max Concurrency",
+      "type": "integer",
+      "description": "Maximum number of concurrent browser pages. Free tier recommends 2.",
+      "default": 2,
+      "minimum": 1,
+      "maximum": 5
+    },
+    "maxRequestsPerMinutePerDomain": {
+      "title": "Max Requests Per Minute Per Domain",
+      "type": "integer",
+      "description": "Strict token-bucket rate limit applied per target domain to prevent IP blocks.",
+      "default": 6,
+      "minimum": 1,
+      "maximum": 60
+    },
+    "maxCandidatesPerPlatform": {
+      "title": "Max Candidates Per Platform",
+      "type": "integer",
+      "description": "Maximum search result candidates to inspect per platform before choosing best match.",
+      "default": 3,
+      "minimum": 1,
+      "maximum": 10
+    },
+    "pageTimeoutSecs": {
+      "title": "Page Timeout (Seconds)",
+      "type": "integer",
+      "description": "Timeout for navigation and selector waiting.",
+      "default": 45,
+      "minimum": 10,
+      "maximum": 120
+    },
+    "maxRetries": {
+      "title": "Max Retries",
+      "type": "integer",
+      "description": "Max retries for transient network or timeout failures.",
+      "default": 2,
+      "minimum": 0,
+      "maximum": 5
+    },
+    "useAiExtraction": {
+      "title": "Use AI Extraction",
+      "type": "boolean",
+      "description": "Enable OpenAI structured output for spec normalization. Recommended FALSE during pilot to avoid API costs.",
+      "default": false
+    },
+    "aiProvider": {
+      "title": "AI Provider",
+      "type": "string",
+      "description": "AI provider implementation.",
+      "editor": "select",
+      "default": "openai",
+      "enum": ["openai"]
+    },
+    "aiModel": {
+      "title": "AI Model",
+      "type": "string",
+      "description": "OpenAI model to use if AI extraction is enabled.",
+      "editor": "textfield",
+      "default": "gpt-4o-mini"
+    },
+    "minimumConfidenceToSaveAsMatch": {
+      "title": "Minimum Confidence for Match",
+      "type": "number",
+      "description": "Threshold (0.0 - 1.0) required to classify as match.",
+      "default": 0.8,
+      "minimum": 0.1,
+      "maximum": 1.0
+    },
+    "saveRawEvidence": {
+      "title": "Save Raw Evidence",
+      "type": "boolean",
+      "description": "Save raw candidate title and text snippets in dataset records.",
+      "default": false
+    },
+    "dryRun": {
+      "title": "Dry Run Mode",
+      "type": "boolean",
+      "description": "Simulates catalog parsing, query building, and batch allocation without firing HTTP/browser requests.",
+      "default": false
+    },
+    "proxyConfiguration": {
+      "title": "Proxy Configuration",
+      "type": "object",
+      "description": "Optional Apify proxy configuration.",
+      "editor": "proxy"
+    }
+  },
+  "required": []
+}
