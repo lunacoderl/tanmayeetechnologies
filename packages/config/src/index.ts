@@ -215,7 +215,7 @@ export const COMPANY = {
   LOGO_URL: '/images/tanmayee-logo.png',
   LOGO_ALT: 'Tanmayee Technologies - Complete Cooling Solutions',
   DOMAIN: 'tanmayeetechnologies.com',
-  FULL_URL: 'http://tanmayeetechnologies.com',
+  FULL_URL: 'https://tanmayeetechnologies.com',
   PHONE: '093901 15553',
   PHONE_INTERNATIONAL: '+919390115553',
   PHONE_DISPLAY: '+91 93901 15553',

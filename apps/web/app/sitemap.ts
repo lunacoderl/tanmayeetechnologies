@@ -1,0 +1,73 @@
+import { MetadataRoute } from 'next';
+import { SEED_PRODUCTS, SEED_CATEGORIES, SEED_BRANDS, SEED_SERVICES } from '@tanmayee/database';
+
+export default function sitemap(): MetadataRoute.Sitemap {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://tanmayeetechnologies.com';
+  const currentDate = new Date();
+
+  // 1. Static Core Pages
+  const staticRoutes: MetadataRoute.Sitemap = [
+    {
+      url: `${baseUrl}`,
+      lastModified: currentDate,
+      changeFrequency: 'daily',
+      priority: 1.0,
+    },
+    {
+      url: `${baseUrl}/products`,
+      lastModified: currentDate,
+      changeFrequency: 'daily',
+      priority: 0.95,
+    },
+    {
+      url: `${baseUrl}/services`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly',
+      priority: 0.85,
+    },
+    {
+      url: `${baseUrl}/about`,
+      lastModified: currentDate,
+      changeFrequency: 'monthly',
+      priority: 0.75,
+    },
+    {
+      url: `${baseUrl}/contact`,
+      lastModified: currentDate,
+      changeFrequency: 'monthly',
+      priority: 0.85,
+    },
+    {
+      url: `${baseUrl}/search`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly',
+      priority: 0.65,
+    },
+  ];
+
+  // 2. Brand Landing Pages
+  const brandRoutes: MetadataRoute.Sitemap = SEED_BRANDS.map((brand) => ({
+    url: `${baseUrl}/brands/${brand.slug}`,
+    lastModified: currentDate,
+    changeFrequency: 'weekly',
+    priority: 0.9,
+  }));
+
+  // 3. Category Landing Pages (Parent categories and subcategories)
+  const categoryRoutes: MetadataRoute.Sitemap = SEED_CATEGORIES.map((category) => ({
+    url: `${baseUrl}/categories/${category.slug}`,
+    lastModified: currentDate,
+    changeFrequency: 'weekly',
+    priority: category.parent_id === null ? 0.85 : 0.8,
+  }));
+
+  // 4. Product Detail Pages (All 155+ commercial models)
+  const productRoutes: MetadataRoute.Sitemap = SEED_PRODUCTS.map((product) => ({
+    url: `${baseUrl}/products/${product.slug}`,
+    lastModified: product.updated_at ? new Date(product.updated_at) : currentDate,
+    changeFrequency: 'weekly',
+    priority: product.featured ? 0.85 : 0.75,
+  }));
+
+  return [...staticRoutes, ...brandRoutes, ...categoryRoutes, ...productRoutes];
+}

@@ -4,6 +4,34 @@ All notable changes and technical implementation milestones are documented in th
 
 ---
 
+## [2026-09-23] - Robust SEO Architecture & Google Search Console Submission Ready
+
+### Added & Enhanced
+- **Dynamic Sitemaps (`apps/web/app/sitemap.ts`)**:
+  - Implemented Next.js App Router native dynamic sitemap served at `/sitemap.xml`.
+  - Automatically crawls and generates indexed URLs with proper `lastModified`, `changeFrequency`, and `priority` for:
+    - Core static pages (`/`, `/products`, `/services`, `/about`, `/contact`, `/search`).
+    - All Brand landing pages (`/brands/blue-star`, `/brands/rockwell`).
+    - All Category landing pages (`/categories/*`).
+    - All 155+ Commercial product models (`/products/*`).
+- **Robots.txt Crawler Directives (`apps/web/app/robots.ts`)**:
+  - Serves standards-compliant `/robots.txt` directing Googlebot to all public marketing, catalog, brand, and service routes while protecting `/cart`, `/checkout`, `/admin`, and `/api/`.
+  - Explicitly binds `Sitemap: https://tanmayeetechnologies.com/sitemap.xml` and host.
+- **Rich Schema.org JSON-LD Structured Data**:
+  - **LocalBusiness / HVACBusiness / Store (`apps/web/app/layout.tsx`)**: Complete schema with legal name, address (PM Palem, Madhurawada, Visakhapatnam), GPS coordinates (`17.8188`, `83.3512`), opening hours, phone numbers, payment types, area served, and Google rating (4.6 stars from 98 authentic reviews).
+  - **WebSite & Sitelinks SearchBox (`apps/web/app/layout.tsx`)**: Registered `SearchAction` enabling Google Sitelinks Search Box directly in SERP.
+  - **Product Schema (`apps/web/app/products/[slug]/page.tsx`)**: High-fidelity Google Rich Results schema with SKU, MPN, Brand, Offer (priceCurrency INR, InStock), and AggregateRating.
+  - **CollectionPage & ItemList Schema (`apps/web/app/categories/[slug]/page.tsx`)**: Structured item lists for equipment categories.
+  - **Brand & Breadcrumb Schema (`apps/web/app/brands/[slug]/page.tsx`)**: Brand hierarchy and BreadcrumbList.
+  - **Service & AMC Schema (`apps/web/app/services/layout.tsx`)**: Commercial service and preventive maintenance catalog.
+  - **ContactPage & AboutPage Schemas**: Structured corporate contacts and corporate entity profile.
+- **Meta Tags, Verification & OpenGraph**:
+  - Added Google Search Console site verification tag support (`NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`).
+  - Added regional geo-meta tags (`geo.region`, `geo.placename`, `geo.position`, `ICBM`) targeting Visakhapatnam, Andhra Pradesh & Telangana.
+  - Added Twitter summary cards and OpenGraph social preview tags.
+
+---
+
 ## [2026-09-23] - Render Backend Runtime Fix & GitHub Multi-Account Deployment Harmonization
 
 ### Fixed

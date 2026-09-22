@@ -12,9 +12,61 @@ import {
   Wrench,
 } from 'lucide-react';
 
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'About Tanmayee Technologies | Blue Star Dealers & Rockwell Distributors',
+  description:
+    'Learn about Tanmayee Technologies, exclusive Blue Star A/C Shoppe Authorized Sales & Service Dealers and Rockwell Commercial Refrigerators Authorized Sales & Service Distributors based in PM Palem, Madhurawada, Visakhapatnam.',
+  keywords: [
+    'about Tanmayee Technologies',
+    'Blue Star dealer Visakhapatnam',
+    'Rockwell distributor Vizag',
+    'commercial cooling history',
+    'Madhurawada electronics store',
+  ],
+  alternates: {
+    canonical: 'https://tanmayeetechnologies.com/about',
+  },
+  openGraph: {
+    title: 'About Tanmayee Technologies | Commercial Cooling Leaders',
+    description:
+      'Premier commercial cooling dealership and distribution partner for Blue Star and Rockwell in Andhra Pradesh & Telangana.',
+    url: 'https://tanmayeetechnologies.com/about',
+    type: 'website',
+  },
+};
+
 export default function AboutPage() {
+  const aboutJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'AboutPage',
+    name: 'About Tanmayee Technologies',
+    url: 'https://tanmayeetechnologies.com/about',
+    mainEntity: {
+      '@type': 'Organization',
+      name: 'Tanmayee Technologies Private Limited',
+      legalName: 'Tanmayee Technologies Private Limited',
+      url: 'https://tanmayeetechnologies.com',
+      foundingLocation: 'Visakhapatnam, Andhra Pradesh',
+      knowsAbout: [
+        'Commercial Air Conditioning',
+        'Cold Chain Equipment',
+        'Deep Freezers',
+        'Visi Coolers',
+        'HVAC Engineering',
+        'Turnkey Cold Storage',
+      ],
+    },
+  };
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutJsonLd) }}
+      />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
       {/* Hero */}
       <div className="text-center max-w-3xl mx-auto space-y-4">
         <div className="flex justify-center mb-2">
@@ -111,5 +163,6 @@ export default function AboutPage() {
         </div>
       </div>
     </div>
+  </>
   );
 }
