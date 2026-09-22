@@ -81,7 +81,7 @@ export function Footer() {
               </div>
               <div>
                 <div className="font-display font-black text-xl text-white tracking-tight group-hover:text-cyan-400 transition-colors">
-                  TANMAYEE
+                  TANMAYEE Technologies
                 </div>
                 <div className="text-[10px] uppercase font-extrabold tracking-widest text-cyan-400">
                   Complete Cooling Solutions
