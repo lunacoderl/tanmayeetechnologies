@@ -41,7 +41,7 @@ const upload = multer({
 export const adminRouter = Router();
 
 // ── Auth ─────────────────────────────────────────────────────────────
-adminRouter.post('/auth/login', loginRateLimiter, validateBody(loginSchema), (req, res, next) =>
+adminRouter.post('/auth/login', loginRateLimiter as any, validateBody(loginSchema) as any, (req: any, res: any, next: any) =>
   adminAuthController.login(req, res, next)
 );
 adminRouter.get('/auth/me', authenticate, (req, res, next) =>
@@ -229,7 +229,7 @@ adminRouter.post(
 adminRouter.post(
   '/media/upload',
   authenticate,
-  upload.single('file'),
+  upload.single('file') as any,
   (req, res, next) => mediaAdminController.upload(req, res, next)
 );
 

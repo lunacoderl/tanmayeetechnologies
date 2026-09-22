@@ -20,8 +20,8 @@ apiRouter.get('/health', (_req, res) => {
 });
 
 // Mount Public and Admin subrouters
-apiRouter.use('/public', publicRateLimiter, publicRouter);
+apiRouter.use('/public', publicRateLimiter as any, publicRouter);
 apiRouter.use('/admin', adminRouter);
 
 // Aliases for convenience (/api/products -> /api/public/products)
-apiRouter.use('/', publicRateLimiter, publicRouter);
+apiRouter.use('/', publicRateLimiter as any, publicRouter);
