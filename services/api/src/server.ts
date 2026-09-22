@@ -7,11 +7,20 @@ import { config } from './config/env';
 
 const app = createApp();
 
-const server = app.listen(config.port, () => {
+// Catch uncaught errors to prevent silent exits
+process.on('uncaughtException', (err) => {
+  console.error('❌ Uncaught Exception:', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+const server = app.listen(config.port, '0.0.0.0', () => {
   console.log(`====================================================`);
   console.log(`🚀 Tanmayee Technologies API Server is running!`);
-  console.log(`📡 URL: http://localhost:${config.port}`);
-  console.log(`🩺 Health Check: http://localhost:${config.port}/api/health`);
+  console.log(`📡 URL: http://0.0.0.0:${config.port}`);
+  console.log(`🩺 Health Check: http://0.0.0.0:${config.port}/api/health`);
   console.log(`📦 Environment: ${config.nodeEnv}`);
   console.log(`====================================================`);
 });
