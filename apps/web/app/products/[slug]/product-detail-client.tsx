@@ -36,12 +36,16 @@ import {
   Leaf,
   Truck,
   HeartHandshake,
-  CheckCheck
+  CheckCheck,
+  Heart,
+  Scale,
 } from 'lucide-react';
 import { Product } from '@tanmayee/types';
 import { COMPANY } from '@tanmayee/config';
 import { useCart } from '../../../lib/cart-context';
 import { ProductCard } from '../../../components/product/product-card';
+import { useUserStore } from '../../../lib/user-store-context';
+import { RecommendedProducts } from '../../../components/product/recommended-products';
 
 interface ProductDetailClientProps {
   product: Product & {
@@ -64,9 +68,28 @@ export function ProductDetailClient({
   similarProducts,
 }: ProductDetailClientProps) {
   const { addToCart, openCart } = useCart();
+  const {
+    isInWishlist,
+    toggleWishlist,
+    isInCompare,
+    toggleCompare,
+    trackProductView,
+    trackCategoryClick,
+  } = useUserStore();
+
   const [quantity, setQuantity] = useState(1);
   const [copied, setCopied] = useState(false);
   const [added, setAdded] = useState(false);
+
+  const inWishlist = isInWishlist(product.id);
+  const inCompare = isInCompare(product.id);
+
+  React.useEffect(() => {
+    trackProductView(product);
+    if (product.category_id) {
+      trackCategoryClick(product.category_id);
+    }
+  }, [product.id, trackProductView, trackCategoryClick]);
 
   const brandName = brand?.name || product.brand_name || 'Manufacturer';
   const isBlueStar = brandName.toLowerCase().includes('blue star');
@@ -369,6 +392,36 @@ export function ProductDetailClient({
                 )}
               </button>
 
+              {/* Wishlist Button */}
+              <button
+                type="button"
+                onClick={() => toggleWishlist(product)}
+                className={`h-12 px-3 rounded-2xl border transition-all flex items-center gap-1.5 font-bold text-xs ${
+                  inWishlist
+                    ? 'bg-rose-50 border-rose-300 text-rose-600 shadow-sm'
+                    : 'border-slate-300 hover:border-rose-300 bg-white hover:bg-rose-50/50 text-slate-700'
+                }`}
+                title={inWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}
+              >
+                <Heart className={`w-4 h-4 ${inWishlist ? 'fill-rose-500 text-rose-500' : 'text-slate-500'}`} />
+                <span className="hidden sm:inline">{inWishlist ? 'Saved' : 'Wishlist'}</span>
+              </button>
+
+              {/* Compare Button */}
+              <button
+                type="button"
+                onClick={() => toggleCompare(product)}
+                className={`h-12 px-3 rounded-2xl border transition-all flex items-center gap-1.5 font-bold text-xs ${
+                  inCompare
+                    ? 'bg-cyan-50 border-cyan-300 text-cyan-700 shadow-sm'
+                    : 'border-slate-300 hover:border-cyan-300 bg-white hover:bg-cyan-50/50 text-slate-700'
+                }`}
+                title={inCompare ? 'Remove from Compare' : 'Add to Compare'}
+              >
+                <Scale className={`w-4 h-4 ${inCompare ? 'text-cyan-600' : 'text-slate-500'}`} />
+                <span className="hidden sm:inline">{inCompare ? 'Comparing' : 'Compare'}</span>
+              </button>
+
               {/* Share Button */}
               <button
                 type="button"
@@ -654,6 +707,16 @@ export function ProductDetailClient({
           </div>
         </div>
       )}
+
+      {/* ── Behavior-Driven Recommendations: Products You May Like ── */}
+      <div className="pt-4 border-t border-slate-200">
+        <RecommendedProducts
+          excludeId={product.id}
+          limit={4}
+          title="Products You May Like"
+          subtitle="Smart equipment recommendations matched to your requirements and cooling load"
+        />
+      </div>
     </div>
   );
 }

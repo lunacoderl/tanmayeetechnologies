@@ -25,6 +25,7 @@ import {
 import { useCart } from '../../lib/cart-context';
 import { fetchFromApi } from '../../lib/api-client';
 import { COMPANY } from '@tanmayee/config';
+import { RecommendedProducts } from '../product/recommended-products';
 
 const SUBMISSION_STEPS = [
   {
@@ -388,6 +389,16 @@ export function QuoteModal() {
                 Return to Product Catalogue
               </button>
             </div>
+
+            {/* Recommended Products You May Like */}
+            <div className="text-left mt-6 pt-4 border-t border-slate-200">
+              <RecommendedProducts
+                variant="compact"
+                limit={3}
+                title="Products You May Like To Bundle Next"
+                subtitle="Frequently requested companion items and high-capacity equipment"
+              />
+            </div>
           </div>
         ) : (
           /* Form Screen with Official Logo Header */
@@ -510,6 +521,15 @@ export function QuoteModal() {
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   placeholder="Installation height, copper piping length, 3-phase power availability..."
                   className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-cyan-500 focus:bg-white transition-all shadow-inner"
+                />
+              </div>
+
+              {/* Quick companion suggestions */}
+              <div className="pt-2">
+                <RecommendedProducts
+                  variant="compact"
+                  limit={2}
+                  title="Products You May Like (Quick Add)"
                 />
               </div>
 

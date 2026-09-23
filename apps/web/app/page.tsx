@@ -37,6 +37,7 @@ import {
 } from 'lucide-react';
 import { useCart } from '../lib/cart-context';
 import { COMPANY } from '@tanmayee/config';
+import { RecommendedProducts } from '../components/product/recommended-products';
 
 export default function HomePage() {
   const { openQuoteModal } = useCart();
@@ -49,19 +50,19 @@ export default function HomePage() {
     'Hello Tanmayee Technologies! I am interested in commercial air conditioning and refrigeration solutions for my business.'
   )}`;
 
-  // 8 Categories from the user design
+  // Comprehensive Categories covering all AC categories & Rockwell refrigeration
   const categories = [
     {
-      name: 'Split ACs',
+      name: 'Inverter Split ACs',
       brand: 'Blue Star',
       href: '/categories/inverter-split-ac',
       image: 'https://cdn.shopify.com/s/files/1/0888/8297/0937/files/ic512qnurav_gallery-images-01_6_3.png?v=1721416682',
     },
     {
-      name: 'Window ACs',
+      name: 'Fixed Speed ACs',
       brand: 'Blue Star',
-      href: '/categories/window-ac',
-      image: 'https://cdn.shopify.com/s/files/1/0888/8297/0937/files/Gallery_Image_01.png?v=1779164122',
+      href: '/categories/fixed-speed-split-ac',
+      image: 'https://cdn.shopify.com/s/files/1/0888/8297/0937/files/ic518vnurav_gallery-images-01_2_4.png',
     },
     {
       name: 'Cassette ACs',
@@ -70,16 +71,34 @@ export default function HomePage() {
       image: '/images/category-cassette-ac.jpg',
     },
     {
-      name: 'Tower ACs',
+      name: 'Tower / Verticool',
       brand: 'Blue Star',
       href: '/categories/commercial-verticool-ac',
       image: 'https://cdn.shopify.com/s/files/1/0888/8297/0937/files/Gallery_Image_01_34dedeb0-0b0f-4b52-943c-663947a8555b.png?v=1779168252',
     },
     {
-      name: 'Freezers',
+      name: 'Window ACs',
+      brand: 'Blue Star',
+      href: '/categories/window-ac',
+      image: 'https://cdn.shopify.com/s/files/1/0888/8297/0937/files/Gallery_Image_01.png?v=1779164122',
+    },
+    {
+      name: 'Mega Split ACs',
+      brand: 'Blue Star',
+      href: '/categories/mega-split-ac',
+      image: 'https://cdn.shopify.com/s/files/1/0888/8297/0937/files/ic518vnurav_gallery-images-01_2_4.png',
+    },
+    {
+      name: 'Green Freezers',
       brand: 'Rockwell',
       href: '/categories/convertible-green-freezer',
       image: 'https://www.rockwell.co.in/cdn/shop/files/GFR250.png',
+    },
+    {
+      name: 'Curved Glass Freezers',
+      brand: 'Rockwell',
+      href: '/categories/curved-glass-freezer',
+      image: 'https://cdn.shopify.com/s/files/1/0701/1929/3028/files/SFR250.png?v=1763989056',
     },
     {
       name: 'Visi Coolers',
@@ -96,7 +115,7 @@ export default function HomePage() {
     {
       name: 'Ice Makers',
       brand: 'Rockwell',
-      href: '/products?category=ice-makers',
+      href: '/categories/commercial-ice-machines',
       image: '/images/category-ice-maker.jpg',
     },
   ];
@@ -131,42 +150,44 @@ export default function HomePage() {
                 </p>
               </div>
 
-              {/* Brand Badges (Blue Star & Rockwell) */}
+              {/* Brand Badges (Blue Star & Rockwell Official Logos) */}
               <div className="flex flex-wrap items-center gap-3 pt-1">
-                {/* Blue Star Badge */}
+                {/* Blue Star Official Logo Badge */}
                 <Link
                   href="/brands/blue-star"
-                  className="bg-white px-4 py-2 rounded-xl flex flex-col items-center justify-center border border-slate-200 shadow-md hover:scale-105 transition-transform"
+                  className="bg-white/95 hover:bg-white px-4 py-2 rounded-xl flex items-center gap-2.5 border border-white/60 shadow-lg hover:scale-105 transition-all"
                 >
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[#00529b] text-base leading-none">★</span>
-                    <span className="font-black text-[#00529b] text-sm tracking-wider font-display">
-                      BLUE STAR
+                  <img
+                    src="/images/bluestar-logo.png"
+                    alt="Blue Star Official Logo"
+                    className="h-7 w-auto object-contain"
+                  />
+                  <div className="border-l border-slate-200 pl-2 text-left">
+                    <span className="text-[9px] font-black text-blue-900 uppercase block tracking-wider leading-none">
+                      Authorized
+                    </span>
+                    <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest leading-none">
+                      Sales & Service
                     </span>
                   </div>
-                  <div className="w-full border-t border-slate-300 my-0.5" />
-                  <span className="text-[9px] font-black tracking-widest text-[#00529b] uppercase">
-                    BUILT ON TRUST
-                  </span>
                 </Link>
 
-                {/* Rockwell Badge */}
+                {/* Rockwell Official Logo Badge */}
                 <Link
                   href="/brands/rockwell"
-                  className="bg-white px-4 py-2 rounded-xl flex items-center gap-2 border border-slate-200 shadow-md hover:scale-105 transition-transform"
+                  className="bg-white/95 hover:bg-white px-4 py-2 rounded-xl flex items-center gap-2.5 border border-white/60 shadow-lg hover:scale-105 transition-all"
                 >
-                  {/* Multi-color emblem */}
-                  <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-amber-400 via-rose-500 to-cyan-500 p-0.5 flex items-center justify-center">
-                    <div className="w-full h-full bg-white rounded-full flex items-center justify-center">
-                      <span className="text-[9px] font-black text-slate-800">R</span>
-                    </div>
-                  </div>
-                  <div className="flex flex-col text-left">
-                    <span className="font-display font-black text-sm tracking-tight text-[#0a2540]">
-                      Rockwell
+                  <img
+                    src="/images/rockwell-logo.png"
+                    alt="Rockwell Official Logo"
+                    className="h-7 w-auto object-contain"
+                  />
+                  <div className="border-l border-slate-200 pl-2 text-left">
+                    <span className="text-[9px] font-black text-emerald-900 uppercase block tracking-wider leading-none">
+                      Distributor
                     </span>
-                    <span className="text-[8px] font-bold text-slate-500 leading-none">
-                      The Refrigeration Company
+                    <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest leading-none">
+                      Commercial Cold
                     </span>
                   </div>
                 </Link>
@@ -442,17 +463,12 @@ export default function HomePage() {
 
             {/* Top Logo Badge */}
             <div className="relative z-10">
-              <div className="inline-flex flex-col bg-white/95 px-3 py-1.5 rounded-xl border border-white shadow-md">
-                <div className="flex items-center gap-1">
-                  <span className="text-[#00529b] text-xs">★</span>
-                  <span className="font-black text-[#00529b] text-xs tracking-wider font-display">
-                    BLUE STAR
-                  </span>
-                </div>
-                <div className="w-full border-t border-slate-300 my-0.5" />
-                <span className="text-[7px] font-black tracking-widest text-[#00529b] uppercase">
-                  BUILT ON TRUST
-                </span>
+              <div className="inline-flex items-center bg-white/95 px-4 py-2 rounded-2xl border border-white shadow-lg">
+                <img
+                  src="/images/bluestar-logo.png"
+                  alt="Blue Star Official Partner"
+                  className="h-7 w-auto object-contain"
+                />
               </div>
             </div>
 
@@ -489,20 +505,12 @@ export default function HomePage() {
 
             {/* Top Logo Badge */}
             <div className="relative z-10">
-              <div className="inline-flex items-center gap-2 bg-white/95 px-3.5 py-1.5 rounded-xl border border-white shadow-md">
-                <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-amber-400 via-rose-500 to-cyan-500 p-0.5 flex items-center justify-center">
-                  <div className="w-full h-full bg-white rounded-full flex items-center justify-center">
-                    <span className="text-[8px] font-black text-slate-800">R</span>
-                  </div>
-                </div>
-                <div className="flex flex-col text-left">
-                  <span className="font-display font-black text-xs tracking-tight text-[#0a2540]">
-                    Rockwell
-                  </span>
-                  <span className="text-[7px] font-bold text-slate-500 leading-none">
-                    The Refrigeration Company
-                  </span>
-                </div>
+              <div className="inline-flex items-center bg-white/95 px-4 py-2 rounded-2xl border border-white shadow-lg">
+                <img
+                  src="/images/rockwell-logo.png"
+                  alt="Rockwell Official Partner"
+                  className="h-7 w-auto object-contain"
+                />
               </div>
             </div>
 
@@ -527,6 +535,15 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* ── Products You May Like (Behavioral Recommendations) ─────────── */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <RecommendedProducts
+          title="Products You May Like"
+          subtitle="Real-time intelligent recommendations matched to your search history, cooling capacity requirements, and viewed models"
+          limit={4}
+        />
       </section>
 
       {/* ── 5. Dual Callout Strips ────────────────────────────────────── */}

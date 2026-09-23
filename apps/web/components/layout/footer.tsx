@@ -236,14 +236,23 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-navy-800/80 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-4">
           <p>© {new Date().getFullYear()} Tanmayee Technologies. All rights reserved.</p>
-          <div className="flex items-center gap-6">
-            <Link href="/about" className="hover:text-slate-300">
-              About Us
+          <div className="flex flex-wrap items-center gap-4 sm:gap-6">
+            <Link href="/terms" className="hover:text-cyan-400 transition-colors">
+              Terms &amp; Conditions
             </Link>
-            <Link href="/contact" className="hover:text-slate-300">
+            <Link href="/privacy" className="hover:text-cyan-400 transition-colors">
+              Privacy Policy
+            </Link>
+            <Link href="/compare" className="hover:text-cyan-400 transition-colors">
+              Compare
+            </Link>
+            <Link href="/wishlist" className="hover:text-cyan-400 transition-colors">
+              Wishlist
+            </Link>
+            <Link href="/contact" className="hover:text-cyan-400 transition-colors">
               Corporate Enquiries
             </Link>
-            <span>Authorized Commercial Partner</span>
+            <span className="text-slate-500">Authorized Commercial Partner</span>
           </div>
         </div>
       </div>

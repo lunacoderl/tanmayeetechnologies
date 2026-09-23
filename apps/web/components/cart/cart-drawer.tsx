@@ -9,6 +9,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { X, Plus, Minus, Trash2, ShoppingBag, ArrowRight, Sparkles, Tag } from 'lucide-react';
 import { useCart } from '../../lib/cart-context';
+import { RecommendedProducts } from '../product/recommended-products';
 
 export function CartDrawer() {
   const {
@@ -173,6 +174,9 @@ export function CartDrawer() {
                 </div>
               ))
             )}
+
+            {/* Personalized Recommendations in Cart */}
+            <RecommendedProducts variant="drawer" limit={3} title="Frequently Added With Quotations" />
           </div>
 
           {/* Footer Summary & Proceed */}

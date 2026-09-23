@@ -5,7 +5,10 @@ import './globals.css';
 import { Header } from '../components/layout/header';
 import { Footer } from '../components/layout/footer';
 import { CartProvider } from '../lib/cart-context';
+import { UserStoreProvider } from '../lib/user-store-context';
 import { CartDrawer } from '../components/cart/cart-drawer';
+import { WishlistDrawer } from '../components/cart/wishlist-drawer';
+import { CompareBar } from '../components/cart/compare-modal';
 import { QuoteModal } from '../components/cart/quote-modal';
 import { FloatingCTAs } from '../components/layout/floating-ctas';
 
@@ -217,14 +220,18 @@ export default function RootLayout({
         />
       </head>
       <body className="flex flex-col min-h-screen bg-slate-50 text-slate-900 font-sans">
-        <CartProvider>
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer />
-          <CartDrawer />
-          <QuoteModal />
-          <FloatingCTAs />
-        </CartProvider>
+        <UserStoreProvider>
+          <CartProvider>
+            <Header />
+            <main className="flex-1">{children}</main>
+            <Footer />
+            <CartDrawer />
+            <WishlistDrawer />
+            <CompareBar />
+            <QuoteModal />
+            <FloatingCTAs />
+          </CartProvider>
+        </UserStoreProvider>
       </body>
     </html>
   );

@@ -17,14 +17,33 @@ import {
 } from 'lucide-react';
 import { SEED_PRODUCTS, SEED_CATEGORIES, SEED_BRANDS } from '@tanmayee/database';
 import { ProductCard } from '../../components/product/product-card';
+import { RecommendedProducts } from '../../components/product/recommended-products';
+import { useUserStore } from '../../lib/user-store-context';
 
 export default function ProductsPage() {
+  const { trackSearchQuery, trackCategoryClick } = useUserStore();
   const [selectedBrand, setSelectedBrand] = useState<string>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedStar, setSelectedStar] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortBy, setSortBy] = useState<'relevance' | 'price_asc' | 'price_desc' | 'name'>('relevance');
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState<boolean>(false);
+
+  // Behavioral interaction tracking
+  React.useEffect(() => {
+    if (searchQuery.trim().length >= 2) {
+      const timer = setTimeout(() => {
+        trackSearchQuery(searchQuery);
+      }, 600);
+      return () => clearTimeout(timer);
+    }
+  }, [searchQuery, trackSearchQuery]);
+
+  React.useEffect(() => {
+    if (selectedCategory !== 'all') {
+      trackCategoryClick(selectedCategory);
+    }
+  }, [selectedCategory, trackCategoryClick]);
 
   // Filter products
   const filteredProducts = useMemo(() => {
@@ -341,6 +360,15 @@ export default function ProductsPage() {
               ))}
             </div>
           )}
+
+          {/* Smart Recommendations Section */}
+          <div className="pt-10 border-t border-slate-200">
+            <RecommendedProducts
+              title="Products You May Like"
+              subtitle="Curated models matched to your active filters, capacity needs, and past searches"
+              limit={3}
+            />
+          </div>
         </div>
       </div>
     </div>
