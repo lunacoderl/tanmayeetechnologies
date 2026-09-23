@@ -225,16 +225,16 @@ export function ProductDetailClient({
               </button>
             </div>
 
-            {/* Bottom Capacity & Configuration Pill */}
-            {(capacityAttr || configAttr) && (
-              <div className="absolute bottom-4 left-4 right-4 flex items-center z-10">
+            {/* Bottom Capacity & Exact Model Number Pill */}
+            {(capacityAttr || product.model_number) && (
+              <div className="absolute bottom-4 left-4 right-4 flex items-center z-10 pointer-events-none">
                 <span className="inline-flex items-center gap-2 bg-slate-950/90 backdrop-blur-md text-white text-xs font-bold px-3.5 py-2 rounded-2xl border border-white/20 shadow-xl">
                   {capacityAttr && (
                     <span className="text-cyan-300 font-black">{capacityAttr.value}</span>
                   )}
-                  {capacityAttr && configAttr && <span className="text-slate-400 font-normal">•</span>}
-                  {configAttr && (
-                    <span className="text-slate-200 font-medium truncate">{configAttr.value}</span>
+                  {capacityAttr && product.model_number && <span className="text-slate-400 font-normal">•</span>}
+                  {product.model_number && (
+                    <span className="text-slate-200 font-mono font-bold tracking-wide">{product.model_number}</span>
                   )}
                 </span>
               </div>

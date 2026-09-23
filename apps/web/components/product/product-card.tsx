@@ -52,17 +52,13 @@ export function ProductCard({ product }: ProductCardProps) {
   const starAttr = product.attributes?.find((a) =>
     a.name.toLowerCase().includes('star')
   );
-  const configAttr = product.attributes?.find((a) =>
-    a.name.toLowerCase().includes('physical configuration') ||
-    a.name.toLowerCase().includes('door type')
-  );
   const tempAttr = product.attributes?.find((a) =>
     a.name.toLowerCase().includes('temperature')
   );
 
-  // Extract structural capacity & configuration values for prominent badges
+  // Extract structural capacity & model number for prominent badges
   const capacityValue = capacityAttr?.value || '';
-  const configValue = configAttr?.value || '';
+  const modelNumber = product.model_number || '';
 
   const whatsappPhone = COMPANY.WHATSAPP_NUMBER || '919390115553';
   const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
@@ -120,8 +116,14 @@ export function ProductCard({ product }: ProductCardProps) {
   return (
     <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-2xl hover:border-cyan-400/80 transition-all duration-300 flex flex-col justify-between overflow-hidden group relative interactive-card animate-fade-in-up">
       <div>
-        {/* Image Container with Badges */}
+        {/* Image Container with Badges & Ambient Edge Fit */}
         <div className="relative aspect-[4/3] bg-gradient-to-b from-slate-100 to-slate-200/60 overflow-hidden">
+          {/* Ambient blurred edge backdrop so image fits perfectly without harsh crop */}
+          <div
+            className="absolute inset-0 bg-cover bg-center filter blur-xl scale-125 opacity-30"
+            style={{ backgroundImage: `url(${imageUrl})` }}
+          />
+
           {/* Skeleton Placeholder while loading */}
           {!imageLoaded && (
             <div className="absolute inset-0 skeleton-box z-0" />
@@ -130,7 +132,7 @@ export function ProductCard({ product }: ProductCardProps) {
           <img
             src={imageUrl}
             alt={product.product_name}
-            className={`w-full h-full object-cover group-hover:scale-105 transition-all duration-500 ${
+            className={`relative z-10 w-full h-full object-contain p-2 group-hover:scale-105 transition-all duration-500 ${
               imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
             }`}
             loading="lazy"
@@ -202,19 +204,19 @@ export function ProductCard({ product }: ProductCardProps) {
             </div>
           )}
 
-          {/* Bottom Capacity & Configuration Pill */}
-          {(capacityValue || configValue) && (
-            <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center z-10">
+          {/* Bottom Capacity & Exact Model Number Pill */}
+          {(capacityValue || modelNumber) && (
+            <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center z-10 pointer-events-none">
               <span className="inline-flex items-center gap-1.5 bg-slate-950/85 backdrop-blur-md text-white text-[11px] font-bold px-3 py-1.5 rounded-xl border border-white/20 shadow-lg">
                 {capacityValue && (
                   <span className="text-cyan-300 font-black">{capacityValue}</span>
                 )}
-                {capacityValue && configValue && (
+                {capacityValue && modelNumber && (
                   <span className="text-slate-400 font-normal">•</span>
                 )}
-                {configValue && (
-                  <span className="text-slate-200 font-medium truncate max-w-[210px]">
-                    {configValue}
+                {modelNumber && (
+                  <span className="text-slate-200 font-mono font-bold tracking-wide truncate max-w-[210px]">
+                    {modelNumber}
                   </span>
                 )}
               </span>

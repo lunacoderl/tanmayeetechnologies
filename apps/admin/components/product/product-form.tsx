@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { SEED_BRANDS, SEED_CATEGORIES } from '@tanmayee/database';
 import { ProductStatus, PriceDisplay } from '@tanmayee/config';
+import { MediaManager } from '../media/media-manager';
 
 interface ProductFormProps {
   initialData?: any;
@@ -822,100 +823,12 @@ export function ProductForm({ initialData, isEdit = false }: ProductFormProps) {
       {/* Tab 4: Media & Gallery Images */}
       {activeTab === 'media' && (
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
-          <h3 className="font-bold text-sm text-slate-900 border-b border-slate-100 pb-2">
-            Product Media, Showcase Photos & Technical PDF Brochures
-          </h3>
-
-          {/* Primary Image Preview & Input */}
-          <div className="space-y-3">
-            <label className="block text-xs font-bold text-slate-700">
-              Primary Showcase Image <span className="text-rose-500">*</span>
-            </label>
-            <div className="flex flex-col sm:flex-row gap-4 items-start">
-              <div className="w-32 h-32 rounded-2xl border-2 border-slate-200 bg-slate-50 overflow-hidden flex items-center justify-center p-2 shrink-0 shadow-inner">
-                {formData.primary_image_url ? (
-                  <img
-                    src={formData.primary_image_url}
-                    alt="Primary Preview"
-                    className="w-full h-full object-contain"
-                    onError={(e) => {
-                      (e.target as any).src = 'https://placehold.co/200x200?text=Invalid+URL';
-                    }}
-                  />
-                ) : (
-                  <ImageIcon className="w-8 h-8 text-slate-300" />
-                )}
-              </div>
-              <div className="flex-1 space-y-2">
-                <input
-                  type="text"
-                  value={formData.primary_image_url}
-                  onChange={(e) => handleTextChange('primary_image_url', e.target.value)}
-                  placeholder="https://... or /images/products/..."
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono text-slate-700 focus:bg-white focus:outline-none focus:border-brand-500"
-                />
-                <p className="text-[11px] text-slate-400">
-                  This image appears as the main catalogue thumbnail, search result preview, and quotation PDF hero item.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Additional Gallery Images */}
-          <div className="space-y-3 pt-3 border-t border-slate-100">
-            <label className="block text-xs font-bold text-slate-700">
-              Additional Product Gallery Photos
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={newGalleryInput}
-                onChange={(e) => setNewGalleryInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAddGalleryImage();
-                  }
-                }}
-                placeholder="Paste image URL and click Add Image..."
-                className="flex-1 px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono text-slate-700 focus:bg-white focus:outline-none focus:border-brand-500"
-              />
-              <button
-                type="button"
-                onClick={handleAddGalleryImage}
-                className="bg-brand-600 text-white font-bold text-xs px-4 py-2 rounded-xl hover:bg-brand-700 transition-colors"
-              >
-                Add Image
-              </button>
-            </div>
-
-            {/* Gallery Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3 pt-2">
-              {formData.gallery_urls.map((url: string, idx: number) => (
-                <div
-                  key={idx}
-                  className="relative group rounded-xl border border-slate-200 bg-slate-50 overflow-hidden aspect-square p-2 flex items-center justify-center"
-                >
-                  <img
-                    src={url}
-                    alt={`Gallery ${idx + 1}`}
-                    className="w-full h-full object-contain"
-                    onError={(e) => {
-                      (e.target as any).src = 'https://placehold.co/100x100?text=Invalid';
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveGalleryImage(idx)}
-                    className="absolute top-1 right-1 bg-rose-600 text-white p-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                    title="Remove Image"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
+          <MediaManager
+            primaryImageUrl={formData.primary_image_url}
+            galleryUrls={formData.gallery_urls}
+            onPrimaryImageChange={(url) => setFormData((prev: any) => ({ ...prev, primary_image_url: url }))}
+            onGalleryUrlsChange={(urls) => setFormData((prev: any) => ({ ...prev, gallery_urls: urls }))}
+          />
 
           {/* Brochure URL */}
           <div className="pt-3 border-t border-slate-100">
