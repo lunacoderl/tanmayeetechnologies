@@ -1,7 +1,13 @@
 'use client';
 
 // ============================================================================
-// @tanmayee/web — Header Component
+// @tanmayee/web — Header Component (Pixel-Matched to Reference Design)
+// Features:
+// 1. Top Bar: "Your Partner for Cooling Solutions", hotline, email, "Get a Quote"
+// 2. Main Header: Stylized Tanmayee Technologies Logo, Centered Search Bar,
+//    Compare (0), Wishlist (0), and My Quote (Live Cart Count)
+// 3. Navigation Links Row: Home, Products ▾, Brands ▾, Services ▾, Offers,
+//    Resources ▾, About Us, Contact
 // ============================================================================
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -9,19 +15,24 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   Search,
-  ShoppingCart,
-  PhoneCall,
+  Heart,
+  Scale,
+  ShoppingBag,
+  ChevronDown,
+  ArrowRight,
   Menu,
   X,
-  ChevronDown,
-  Snowflake,
+  Phone,
+  Mail,
   ShieldCheck,
-  ArrowRight,
+  Wrench,
+  FileText,
+  Sparkles,
+  Layers,
 } from 'lucide-react';
 import { useCart } from '../../lib/cart-context';
 import { SEED_CATEGORIES, SEED_BRANDS } from '@tanmayee/database';
 import { COMPANY } from '@tanmayee/config';
-
 
 export function Header() {
   const pathname = usePathname();
@@ -32,14 +43,20 @@ export function Header() {
   const [suggestions, setSuggestions] = useState<any>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
+
+  // Dropdown states
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
+  const navRef = useRef<HTMLDivElement>(null);
 
   // Close search suggestions on click outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setIsSearchOpen(false);
+      }
+      if (navRef.current && !navRef.current.contains(event.target as Node)) {
+        setActiveDropdown(null);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -77,249 +94,118 @@ export function Header() {
 
   return (
     <>
-      {/* Top Banner: Emergency Support & Authorized Partner Notice */}
-      <div className="bg-navy-900 text-slate-300 text-xs py-2 px-4 border-b border-navy-800">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+      {/* ── 1. Top Bar (Navy Blue) ────────────────────────────────────── */}
+      <div className="bg-[#0b2847] text-slate-200 text-[11px] sm:text-xs py-1.5 px-4 border-b border-[#0f355c]">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
+          {/* Left: Partner Tagline */}
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 bg-brand-600/30 text-brand-300 px-2 py-0.5 rounded font-medium text-[11px] border border-brand-500/30">
-              <ShieldCheck className="w-3.5 h-3.5 text-brand-400" /> Authorized Commercial Partner
+            <span className="font-medium text-slate-300">
+              Your Partner for Cooling Solutions
             </span>
-            <a
-              href="https://maps.app.goo.gl/ndzjgar89V8CXgaC7"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden sm:inline text-slate-300 hover:text-cyan-300 hover:underline transition-colors"
-            >
-              📍 PM Palem, Madhurawada, Visakhapatnam (Get Directions)
-            </a>
           </div>
-          <div className="flex items-center gap-4">
-            <a
-              href={`tel:${COMPANY.PHONE}`}
-              className="flex items-center gap-1.5 hover:text-white transition-colors"
+
+          {/* Right: Phone & Email + Get a Quote Button */}
+          <div className="flex items-center gap-3 sm:gap-5">
+            <div className="hidden sm:flex items-center gap-3 text-slate-300 font-medium">
+              <a
+                href="tel:+919340193535"
+                className="hover:text-cyan-300 transition-colors flex items-center gap-1.5"
+              >
+                <span>Sales & Support:</span>
+                <span className="font-bold text-white">+91 93401 93535</span>
+              </a>
+              <span className="text-slate-500">|</span>
+              <a
+                href="mailto:info@tanmayeetechnologies.in"
+                className="hover:text-cyan-300 transition-colors"
+              >
+                info@tanmayeetechnologies.in
+              </a>
+            </div>
+
+            {/* Quick Get a Quote CTA Button */}
+            <button
+              type="button"
+              onClick={openQuoteModal}
+              className="bg-[#0284c7] hover:bg-[#0369a1] text-white font-bold text-[11px] sm:text-xs px-3.5 py-1 rounded transition-colors shadow-sm"
             >
-              <PhoneCall className="w-3.5 h-3.5 text-brand-400" />
-              <span className="font-semibold text-slate-200">{COMPANY.PHONE_DISPLAY}</span>
-            </a>
-            <span className="hidden md:inline text-slate-600">|</span>
-            <span className="hidden md:inline text-slate-400">{COMPANY.STORE_HOURS}</span>
+              Get a Quote
+            </button>
           </div>
         </div>
       </div>
 
-
-      {/* Main Navbar */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
+      {/* ── 2. Main Header (White) ────────────────────────────────────── */}
+      <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20 gap-4">
-            {/* Official Brand Logo */}
-            <Link href="/" className="flex items-center gap-3.5 shrink-0 group">
-              <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-cyan-500/40 shadow-md shadow-cyan-500/20 group-hover:scale-105 group-hover:border-cyan-500 transition-all duration-300 bg-white p-0.5">
-                <img
-                  src="/images/tanmayee-logo.png"
-                  alt="Tanmayee Technologies - Complete Cooling Solutions"
-                  className="w-full h-full object-contain rounded-full"
-                />
+          {/* Upper Row: Logo, Search Bar, and Action Icons */}
+          <div className="flex items-center justify-between h-20 gap-4 lg:gap-8">
+            {/* Logo */}
+            <Link href="/" className="flex items-center gap-3 shrink-0 group">
+              {/* Stylized Cyan & Navy T Emblem */}
+              <div className="w-10 h-10 sm:w-11 sm:h-11 relative flex items-center justify-center">
+                <svg viewBox="0 0 100 100" className="w-full h-full">
+                  {/* Top Crossbar (Cyan) */}
+                  <rect x="10" y="14" width="80" height="20" rx="4" fill="#0284c7" />
+                  {/* Vertical Stem (Deep Navy) */}
+                  <rect x="38" y="34" width="24" height="52" rx="4" fill="#0b2847" />
+                  {/* Accent Slant Dynamic Dot */}
+                  <circle cx="20" cy="50" r="6" fill="#38bdf8" />
+                  <circle cx="80" cy="50" r="6" fill="#0284c7" />
+                </svg>
               </div>
+
+              {/* Brand Typography */}
               <div className="flex flex-col">
-                <div className="flex items-center gap-1.5">
-                  <span className="font-display font-black text-xl tracking-tight text-slate-900 group-hover:text-cyan-700 transition-colors">
-                    TANMAYEE
-                  </span>
-                  <span className="text-xs font-bold text-cyan-600 tracking-wider">
-                    TECHNOLOGIES
-                  </span>
+                <div className="font-display font-black text-lg sm:text-xl tracking-tight text-[#0b2847] leading-tight">
+                  TANMAYEE
                 </div>
-                <span className="text-[10px] uppercase font-extrabold tracking-widest text-slate-500 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-ping inline-block" />
-                  Complete Cooling Solutions
-                </span>
+                <div className="font-display font-extrabold text-xs sm:text-sm tracking-wider text-[#0b2847] leading-none">
+                  TECHNOLOGIES
+                </div>
+                <div className="text-[9px] font-bold tracking-widest text-[#0284c7] uppercase mt-0.5">
+                  COOLING A BETTER TOMORROW
+                </div>
               </div>
             </Link>
 
-            {/* Desktop Navigation Links */}
-            <nav className="hidden lg:flex items-center gap-1.5">
-              {/* Products Mega-Menu */}
-              <div
-                className="relative"
-                onMouseEnter={() => setIsCategoryMenuOpen(true)}
-                onMouseLeave={() => setIsCategoryMenuOpen(false)}
-              >
-                <button
-                  type="button"
-                  onClick={() => router.push('/products')}
-                  className={`px-3.5 py-2 rounded-xl text-sm font-bold flex items-center gap-1.5 transition-all ${
-                    pathname.startsWith('/products') || pathname.startsWith('/brands') || pathname.startsWith('/categories')
-                      ? 'text-cyan-700 bg-cyan-50'
-                      : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
-                  }`}
-                >
-                  <span>Products</span>
-                  <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isCategoryMenuOpen ? 'rotate-180 text-cyan-600' : 'text-slate-400'}`} />
-                </button>
-
-                {isCategoryMenuOpen && (
-                  <div className="absolute top-full left-0 w-[540px] bg-white rounded-2xl shadow-2xl border border-slate-200 p-5 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                    <div className="grid grid-cols-2 gap-4">
-                      {/* Brand 1: Blue Star */}
-                      <div className="p-3.5 rounded-xl bg-gradient-to-br from-blue-50/70 to-slate-50 border border-blue-100 hover:border-blue-300 transition-all group">
-                        <div className="flex items-center justify-between mb-2">
-                          <Link
-                            href="/brands/blue-star"
-                            onClick={() => setIsCategoryMenuOpen(false)}
-                            className="font-bold text-sm text-blue-900 group-hover:text-blue-700 flex items-center gap-1"
-                          >
-                            <span>Blue Star</span>
-                            <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                          </Link>
-                          <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">
-                            Authorized Dealers
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-slate-500 mb-2.5 leading-relaxed">
-                          Precision Inverter Split ACs, Cassettes, Ductables & Deep Freezers.
-                        </p>
-                        <Link
-                          href="/brands/blue-star"
-                          onClick={() => setIsCategoryMenuOpen(false)}
-                          className="text-xs font-semibold text-blue-600 hover:underline inline-flex items-center gap-1"
-                        >
-                          View Blue Star Range &rarr;
-                        </Link>
-                      </div>
-
-                      {/* Brand 2: Rockwell */}
-                      <div className="p-3.5 rounded-xl bg-gradient-to-br from-emerald-50/70 to-slate-50 border border-emerald-100 hover:border-emerald-300 transition-all group">
-                        <div className="flex items-center justify-between mb-2">
-                          <Link
-                            href="/brands/rockwell"
-                            onClick={() => setIsCategoryMenuOpen(false)}
-                            className="font-bold text-sm text-emerald-900 group-hover:text-emerald-700 flex items-center gap-1"
-                          >
-                            <span>Rockwell</span>
-                            <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                          </Link>
-                          <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
-                            Authorized Distributors
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-slate-500 mb-2.5 leading-relaxed">
-                          Commercial Chest Freezers, Visi Coolers, Solar Freezers & Cold Storage.
-                        </p>
-                        <Link
-                          href="/brands/rockwell"
-                          onClick={() => setIsCategoryMenuOpen(false)}
-                          className="text-xs font-semibold text-emerald-600 hover:underline inline-flex items-center gap-1"
-                        >
-                          View Rockwell Range &rarr;
-                        </Link>
-                      </div>
-                    </div>
-
-                    {/* Popular Categories */}
-                    <div className="mt-4 pt-3.5 border-t border-slate-100">
-                      <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-                        Browse by Equipment Category
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        {SEED_CATEGORIES.slice(0, 6).map((cat) => (
-                          <Link
-                            key={cat.id}
-                            href={`/categories/${cat.slug}`}
-                            onClick={() => setIsCategoryMenuOpen(false)}
-                            className="flex items-center justify-between p-2 rounded-lg hover:bg-slate-100 text-slate-700 hover:text-slate-900 transition-colors"
-                          >
-                            <span className="truncate">{cat.name}</span>
-                            <span className="text-[10px] text-slate-400 font-mono">{cat.product_count}</span>
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* All Products Footer Link */}
-                    <div className="mt-3.5 pt-3 border-t border-slate-100 flex items-center justify-between bg-slate-50 -mx-5 -mb-5 px-5 py-3 rounded-b-2xl">
-                      <span className="text-xs text-slate-500 font-medium">155+ Certified Commercial Models</span>
-                      <Link
-                        href="/products"
-                        onClick={() => setIsCategoryMenuOpen(false)}
-                        className="text-xs font-bold text-cyan-700 hover:text-cyan-800 flex items-center gap-1"
-                      >
-                        <span>View All Products</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </Link>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Services & AMC */}
-              <Link
-                href="/services"
-                className={`px-3.5 py-2 rounded-xl text-sm font-semibold transition-colors ${
-                  pathname.startsWith('/services')
-                    ? 'text-brand-600 bg-brand-50'
-                    : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
-                }`}
-              >
-                Services & AMC
-              </Link>
-
-              {/* About */}
-              <Link
-                href="/about"
-                className={`px-3.5 py-2 rounded-xl text-sm font-semibold transition-colors ${
-                  pathname === '/about'
-                    ? 'text-brand-600 bg-brand-50'
-                    : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
-                }`}
-              >
-                About
-              </Link>
-
-              {/* Contact */}
-              <Link
-                href="/contact"
-                className={`px-3.5 py-2 rounded-xl text-sm font-semibold transition-colors ${
-                  pathname === '/contact'
-                    ? 'text-brand-600 bg-brand-50'
-                    : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
-                }`}
-              >
-                Contact
-              </Link>
-            </nav>
-
-            {/* Search Bar */}
-            <div className="flex-1 max-w-xs relative hidden md:block" ref={searchRef}>
-              <form onSubmit={handleSearchSubmit}>
-                <div className="relative">
+            {/* Center: Search Bar */}
+            <div className="flex-1 max-w-2xl relative hidden md:block" ref={searchRef}>
+              <form onSubmit={handleSearchSubmit} className="relative flex items-center">
+                <div className="relative w-full">
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search 155+ ACs, Freezers..."
-                    className="w-full pl-9 pr-4 py-2 bg-slate-100 border border-transparent rounded-full text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all"
+                    placeholder="Search for products, models, categories..."
+                    className="w-full pl-4 pr-12 py-2.5 bg-slate-50 hover:bg-slate-100/70 border border-slate-300 rounded-lg text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#0284c7] focus:bg-white transition-all shadow-inner"
                   />
-                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  <button
+                    type="submit"
+                    aria-label="Search"
+                    className="absolute right-1 top-1 bottom-1 px-3.5 bg-[#0f4c81] hover:bg-[#0b3860] text-white rounded-md flex items-center justify-center transition-colors"
+                  >
+                    <Search className="w-4 h-4" />
+                  </button>
                 </div>
               </form>
 
               {/* Instant Search Suggestions Dropdown */}
               {isSearchOpen && suggestions && (
-                <div className="absolute top-full mt-2 left-0 right-0 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden z-50 p-2">
+                <div className="absolute top-full mt-1.5 left-0 right-0 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden z-50 p-2.5 animate-in fade-in slide-in-from-top-2 duration-150">
                   {suggestions.brands.length > 0 && (
                     <div className="mb-2">
-                      <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-3 py-1">
+                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 py-1">
                         Brands
                       </div>
                       {suggestions.brands.map((b: any) => (
                         <Link
                           key={b.id}
                           href={`/brands/${b.slug}`}
-                          className="flex items-center justify-between px-3 py-1.5 text-sm text-slate-700 hover:bg-brand-50 hover:text-brand-600 rounded-lg"
+                          className="flex items-center justify-between px-3 py-1.5 text-xs text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 rounded-lg"
                           onClick={() => setIsSearchOpen(false)}
                         >
-                          <span>{b.name}</span>
+                          <span className="font-semibold">{b.name}</span>
                           <ArrowRight className="w-3.5 h-3.5 opacity-50" />
                         </Link>
                       ))}
@@ -328,18 +214,20 @@ export function Header() {
 
                   {suggestions.categories.length > 0 && (
                     <div>
-                      <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-3 py-1">
+                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 py-1">
                         Categories
                       </div>
                       {suggestions.categories.map((c: any) => (
                         <Link
                           key={c.id}
                           href={`/categories/${c.slug}`}
-                          className="flex items-center justify-between px-3 py-1.5 text-sm text-slate-700 hover:bg-brand-50 hover:text-brand-600 rounded-lg"
+                          className="flex items-center justify-between px-3 py-1.5 text-xs text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 rounded-lg"
                           onClick={() => setIsSearchOpen(false)}
                         >
                           <span>{c.name}</span>
-                          <ArrowRight className="w-3.5 h-3.5 opacity-50" />
+                          <span className="text-[10px] text-slate-400 font-mono">
+                            {c.product_count} models
+                          </span>
                         </Link>
                       ))}
                     </div>
@@ -349,7 +237,7 @@ export function Header() {
                     <button
                       type="button"
                       onClick={handleSearchSubmit}
-                      className="w-full text-center text-xs font-semibold text-brand-600 hover:underline py-1"
+                      className="w-full text-center text-xs font-bold text-cyan-600 hover:underline py-1"
                     >
                       View all results for &ldquo;{searchQuery}&rdquo;
                     </button>
@@ -358,45 +246,375 @@ export function Header() {
               )}
             </div>
 
-            {/* Actions: Cart Drawer Button + Request Quote CTA */}
-            <div className="flex items-center gap-3">
-              {/* Cart Drawer Icon Button */}
+            {/* Right: Compare, Wishlist, My Quote Action Items */}
+            <div className="flex items-center gap-5 sm:gap-7 shrink-0">
+              {/* Compare Icon */}
+              <Link
+                href="/products"
+                className="flex flex-col items-center group relative text-slate-600 hover:text-[#0284c7] transition-colors"
+                title="Compare Products"
+              >
+                <div className="relative">
+                  <Scale className="w-5 h-5 text-slate-700 group-hover:text-[#0284c7] transition-colors" />
+                  <span className="absolute -top-1.5 -right-2 bg-[#0b2847] text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                    0
+                  </span>
+                </div>
+                <span className="text-[10px] font-semibold text-slate-600 mt-1">
+                  Compare
+                </span>
+              </Link>
+
+              {/* Wishlist Icon */}
+              <Link
+                href="/products"
+                className="flex flex-col items-center group relative text-slate-600 hover:text-[#0284c7] transition-colors"
+                title="Your Wishlist"
+              >
+                <div className="relative">
+                  <Heart className="w-5 h-5 text-slate-700 group-hover:text-rose-500 transition-colors" />
+                  <span className="absolute -top-1.5 -right-2 bg-[#0b2847] text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                    0
+                  </span>
+                </div>
+                <span className="text-[10px] font-semibold text-slate-600 mt-1">
+                  Wishlist
+                </span>
+              </Link>
+
+              {/* My Quote Icon */}
               <button
                 type="button"
                 onClick={openDrawer}
-                className="relative p-2.5 rounded-full text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors"
-                aria-label="View Quotation Cart"
+                className="flex flex-col items-center group relative text-slate-600 hover:text-[#0284c7] transition-colors cursor-pointer"
+                title="View Quotation Cart"
               >
-                <ShoppingCart className="w-5 h-5" />
-                {itemCount > 0 && (
-                  <span
-                    key={itemCount}
-                    className="absolute -top-1 -right-1 bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-[11px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-lg animate-pop-scale"
-                  >
+                <div className="relative">
+                  <ShoppingBag className="w-5 h-5 text-slate-700 group-hover:text-[#0284c7] transition-colors" />
+                  <span className="absolute -top-1.5 -right-2 bg-[#0284c7] text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-white shadow-sm animate-pop-scale">
                     {itemCount}
                   </span>
-                )}
+                </div>
+                <span className="text-[10px] font-bold text-slate-800 mt-1">
+                  My Quote
+                </span>
               </button>
 
-              {/* Quotation Button */}
-              <button
-                type="button"
-                onClick={itemCount > 0 ? openQuoteModal : openDrawer}
-                className="hidden sm:inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 text-white px-4 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-blue-500/20 hover:from-blue-700 hover:to-cyan-700 transition-all hover:scale-[1.02] active:scale-[0.98]"
-              >
-                <span>Quotation</span>
-              </button>
-
-              {/* Mobile menu toggle */}
+              {/* Mobile Menu Toggle Button */}
               <button
                 type="button"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="lg:hidden p-2 rounded-lg text-slate-700 hover:bg-slate-100"
+                className="lg:hidden p-1.5 rounded-lg text-slate-700 hover:bg-slate-100"
                 aria-label="Toggle menu"
               >
                 {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
             </div>
+          </div>
+
+          {/* ── 3. Bottom Row: Navigation Links ───────────────────────── */}
+          <div className="hidden lg:flex items-center gap-1 border-t border-slate-100 py-1" ref={navRef}>
+            {/* Home Link (Active) */}
+            <Link
+              href="/"
+              className={`px-3 py-2 text-xs font-bold transition-colors relative ${
+                pathname === '/'
+                  ? 'text-[#0284c7]'
+                  : 'text-slate-700 hover:text-[#0284c7]'
+              }`}
+            >
+              <span>Home</span>
+              {pathname === '/' && (
+                <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-[#0284c7] rounded-full" />
+              )}
+            </Link>
+
+            {/* Products Mega Dropdown */}
+            <div
+              className="relative"
+              onMouseEnter={() => setActiveDropdown('products')}
+              onMouseLeave={() => setActiveDropdown(null)}
+            >
+              <button
+                type="button"
+                onClick={() => router.push('/products')}
+                className={`px-3 py-2 text-xs font-bold flex items-center gap-1 transition-colors ${
+                  pathname.startsWith('/products') || activeDropdown === 'products'
+                    ? 'text-[#0284c7]'
+                    : 'text-slate-700 hover:text-[#0284c7]'
+                }`}
+              >
+                <span>Products</span>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+              </button>
+
+              {activeDropdown === 'products' && (
+                <div className="absolute top-full left-0 w-[580px] bg-white rounded-2xl shadow-2xl border border-slate-200 p-5 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Brand 1: Blue Star */}
+                    <div className="p-3.5 rounded-xl bg-gradient-to-br from-blue-50/70 to-slate-50 border border-blue-100 hover:border-blue-300 transition-all group">
+                      <div className="flex items-center justify-between mb-2">
+                        <Link
+                          href="/brands/blue-star"
+                          onClick={() => setActiveDropdown(null)}
+                          className="font-bold text-sm text-blue-900 group-hover:text-blue-700 flex items-center gap-1"
+                        >
+                          <span>Blue Star</span>
+                          <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </Link>
+                        <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">
+                          Built on Trust
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 mb-2 leading-relaxed">
+                        Split ACs, Window ACs, Cassettes, Tower Verticools & Deep Freezers.
+                      </p>
+                      <Link
+                        href="/brands/blue-star"
+                        onClick={() => setActiveDropdown(null)}
+                        className="text-xs font-semibold text-blue-600 hover:underline inline-flex items-center gap-1"
+                      >
+                        Explore Blue Star &rarr;
+                      </Link>
+                    </div>
+
+                    {/* Brand 2: Rockwell */}
+                    <div className="p-3.5 rounded-xl bg-gradient-to-br from-emerald-50/70 to-slate-50 border border-emerald-100 hover:border-emerald-300 transition-all group">
+                      <div className="flex items-center justify-between mb-2">
+                        <Link
+                          href="/brands/rockwell"
+                          onClick={() => setActiveDropdown(null)}
+                          className="font-bold text-sm text-emerald-900 group-hover:text-emerald-700 flex items-center gap-1"
+                        >
+                          <span>Rockwell</span>
+                          <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </Link>
+                        <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                          The Refrigeration Co.
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 mb-2 leading-relaxed">
+                        Convertible Green Freezers, Visi Coolers, Water Coolers & Cold Storage.
+                      </p>
+                      <Link
+                        href="/brands/rockwell"
+                        onClick={() => setActiveDropdown(null)}
+                        className="text-xs font-semibold text-emerald-600 hover:underline inline-flex items-center gap-1"
+                      >
+                        Explore Rockwell &rarr;
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* Categories preview */}
+                  <div className="mt-4 pt-3 border-t border-slate-100">
+                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                      Key Categories
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-xs">
+                      {SEED_CATEGORIES.slice(0, 6).map((cat) => (
+                        <Link
+                          key={cat.id}
+                          href={`/categories/${cat.slug}`}
+                          onClick={() => setActiveDropdown(null)}
+                          className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-700 hover:text-slate-900 truncate"
+                        >
+                          {cat.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between">
+                    <span className="text-[11px] text-slate-500">155+ Certified Commercial Models</span>
+                    <Link
+                      href="/products"
+                      onClick={() => setActiveDropdown(null)}
+                      className="text-xs font-bold text-[#0284c7] hover:underline flex items-center gap-1"
+                    >
+                      <span>View All Products</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Brands Dropdown */}
+            <div
+              className="relative"
+              onMouseEnter={() => setActiveDropdown('brands')}
+              onMouseLeave={() => setActiveDropdown(null)}
+            >
+              <button
+                type="button"
+                className={`px-3 py-2 text-xs font-bold flex items-center gap-1 transition-colors ${
+                  pathname.startsWith('/brands') || activeDropdown === 'brands'
+                    ? 'text-[#0284c7]'
+                    : 'text-slate-700 hover:text-[#0284c7]'
+                }`}
+              >
+                <span>Brands</span>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+              </button>
+
+              {activeDropdown === 'brands' && (
+                <div className="absolute top-full left-0 w-64 bg-white rounded-xl shadow-xl border border-slate-200 p-2 z-50">
+                  <Link
+                    href="/brands/blue-star"
+                    onClick={() => setActiveDropdown(null)}
+                    className="flex items-center justify-between p-2.5 rounded-lg hover:bg-blue-50 text-slate-800 hover:text-blue-900 transition-colors"
+                  >
+                    <div>
+                      <div className="font-bold text-xs">Blue Star</div>
+                      <div className="text-[10px] text-slate-400">Air Conditioning & Freezers</div>
+                    </div>
+                    <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+                  </Link>
+
+                  <Link
+                    href="/brands/rockwell"
+                    onClick={() => setActiveDropdown(null)}
+                    className="flex items-center justify-between p-2.5 rounded-lg hover:bg-emerald-50 text-slate-800 hover:text-emerald-900 transition-colors"
+                  >
+                    <div>
+                      <div className="font-bold text-xs">Rockwell</div>
+                      <div className="text-[10px] text-slate-400">Commercial Refrigeration</div>
+                    </div>
+                    <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* Services Dropdown */}
+            <div
+              className="relative"
+              onMouseEnter={() => setActiveDropdown('services')}
+              onMouseLeave={() => setActiveDropdown(null)}
+            >
+              <button
+                type="button"
+                onClick={() => router.push('/services')}
+                className={`px-3 py-2 text-xs font-bold flex items-center gap-1 transition-colors ${
+                  pathname.startsWith('/services') || activeDropdown === 'services'
+                    ? 'text-[#0284c7]'
+                    : 'text-slate-700 hover:text-[#0284c7]'
+                }`}
+              >
+                <span>Services</span>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+              </button>
+
+              {activeDropdown === 'services' && (
+                <div className="absolute top-full left-0 w-72 bg-white rounded-xl shadow-xl border border-slate-200 p-2 z-50">
+                  <Link
+                    href="/services"
+                    onClick={() => setActiveDropdown(null)}
+                    className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-50 text-slate-700 hover:text-slate-900"
+                  >
+                    <Wrench className="w-4 h-4 text-cyan-600" />
+                    <div>
+                      <div className="font-bold text-xs">Installation</div>
+                      <div className="text-[10px] text-slate-400">Turnkey HVAC commissioning</div>
+                    </div>
+                  </Link>
+                  <Link
+                    href="/services"
+                    onClick={() => setActiveDropdown(null)}
+                    className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-50 text-slate-700 hover:text-slate-900"
+                  >
+                    <ShieldCheck className="w-4 h-4 text-cyan-600" />
+                    <div>
+                      <div className="font-bold text-xs">AMC Plans</div>
+                      <div className="text-[10px] text-slate-400">Annual maintenance contracts</div>
+                    </div>
+                  </Link>
+                  <Link
+                    href="/services"
+                    onClick={() => setActiveDropdown(null)}
+                    className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-50 text-slate-700 hover:text-slate-900"
+                  >
+                    <FileText className="w-4 h-4 text-cyan-600" />
+                    <div>
+                      <div className="font-bold text-xs">Repair & Support</div>
+                      <div className="text-[10px] text-slate-400">Genuine parts & diagnostics</div>
+                    </div>
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* Offers Link */}
+            <Link
+              href="/products?deals=true"
+              className="px-3 py-2 text-xs font-bold text-slate-700 hover:text-[#0284c7] transition-colors"
+            >
+              <span>Offers</span>
+            </Link>
+
+            {/* Resources Dropdown */}
+            <div
+              className="relative"
+              onMouseEnter={() => setActiveDropdown('resources')}
+              onMouseLeave={() => setActiveDropdown(null)}
+            >
+              <button
+                type="button"
+                className={`px-3 py-2 text-xs font-bold flex items-center gap-1 transition-colors ${
+                  activeDropdown === 'resources' ? 'text-[#0284c7]' : 'text-slate-700 hover:text-[#0284c7]'
+                }`}
+              >
+                <span>Resources</span>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+              </button>
+
+              {activeDropdown === 'resources' && (
+                <div className="absolute top-full left-0 w-60 bg-white rounded-xl shadow-xl border border-slate-200 p-2 z-50">
+                  <Link
+                    href="/about"
+                    onClick={() => setActiveDropdown(null)}
+                    className="block p-2 rounded-lg hover:bg-slate-50 text-xs font-semibold text-slate-700"
+                  >
+                    Product Catalogues & PDFs
+                  </Link>
+                  <Link
+                    href="/about"
+                    onClick={() => setActiveDropdown(null)}
+                    className="block p-2 rounded-lg hover:bg-slate-50 text-xs font-semibold text-slate-700"
+                  >
+                    Commercial Cold Storage Guide
+                  </Link>
+                  <Link
+                    href="/contact"
+                    onClick={() => setActiveDropdown(null)}
+                    className="block p-2 rounded-lg hover:bg-slate-50 text-xs font-semibold text-slate-700"
+                  >
+                    B2B Enquiries & Procurement
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* About Us */}
+            <Link
+              href="/about"
+              className={`px-3 py-2 text-xs font-bold transition-colors ${
+                pathname === '/about' ? 'text-[#0284c7]' : 'text-slate-700 hover:text-[#0284c7]'
+              }`}
+            >
+              About Us
+            </Link>
+
+            {/* Contact */}
+            <Link
+              href="/contact"
+              className={`px-3 py-2 text-xs font-bold transition-colors ${
+                pathname === '/contact' ? 'text-[#0284c7]' : 'text-slate-700 hover:text-[#0284c7]'
+              }`}
+            >
+              Contact
+            </Link>
           </div>
         </div>
 
@@ -410,83 +628,90 @@ export function Header() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search 155+ products, models..."
-                  className="w-full pl-9 pr-4 py-2 bg-slate-100 border border-slate-200 rounded-lg text-sm"
+                  placeholder="Search for products, models, categories..."
+                  className="w-full pl-4 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs"
                 />
-                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                <button
+                  type="submit"
+                  className="absolute right-1 top-1 bottom-1 px-3 bg-[#0f4c81] text-white rounded-md flex items-center justify-center"
+                >
+                  <Search className="w-3.5 h-3.5" />
+                </button>
               </div>
             </form>
 
             <div className="space-y-1">
               <Link
-                href="/products"
-                className="flex items-center justify-between px-3 py-2.5 rounded-xl font-bold text-sm text-slate-900 hover:bg-slate-100"
+                href="/"
+                className="block px-3 py-2 rounded-lg font-bold text-xs text-slate-900 hover:bg-slate-50"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                <span>All Products (155+ Models)</span>
-                <ArrowRight className="w-4 h-4 text-slate-400" />
+                Home
               </Link>
-
-              <div className="pt-2 pb-1 px-3 text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
-                Authorized Brand Lines
-              </div>
+              <Link
+                href="/products"
+                className="block px-3 py-2 rounded-lg font-bold text-xs text-slate-900 hover:bg-slate-50"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                All Products (155+ Models)
+              </Link>
               <Link
                 href="/brands/blue-star"
-                className="flex items-center justify-between px-3 py-2 rounded-xl text-sm font-semibold text-blue-900 bg-blue-50/60 hover:bg-blue-100/60"
+                className="block px-3 py-2 rounded-lg text-xs font-semibold text-blue-900 bg-blue-50/50"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                <span>Blue Star</span>
-                <span className="text-[10px] font-bold uppercase bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
-                  Authorized Dealers
-                </span>
+                Blue Star Products
               </Link>
               <Link
                 href="/brands/rockwell"
-                className="flex items-center justify-between px-3 py-2 rounded-xl text-sm font-semibold text-emerald-900 bg-emerald-50/60 hover:bg-emerald-100/60"
+                className="block px-3 py-2 rounded-lg text-xs font-semibold text-emerald-900 bg-emerald-50/50"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                <span>Rockwell</span>
-                <span className="text-[10px] font-bold uppercase bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">
-                  Authorized Distributors
-                </span>
+                Rockwell Refrigeration
               </Link>
-
-              <div className="pt-3 pb-1 px-3 text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
-                Company & Services
-              </div>
               <Link
                 href="/services"
-                className="block px-3 py-2 rounded-xl font-medium text-sm text-slate-800 hover:bg-slate-100"
+                className="block px-3 py-2 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-50"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Services & AMC
               </Link>
               <Link
                 href="/about"
-                className="block px-3 py-2 rounded-xl font-medium text-sm text-slate-800 hover:bg-slate-100"
+                className="block px-3 py-2 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-50"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                About Us (Showroom & Profile)
+                About Us
               </Link>
               <Link
                 href="/contact"
-                className="block px-3 py-2 rounded-xl font-medium text-sm text-slate-800 hover:bg-slate-100"
+                className="block px-3 py-2 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-50"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                Contact & Directions
+                Contact
               </Link>
             </div>
 
-            <div className="pt-4 border-t border-slate-100">
+            <div className="pt-3 border-t border-slate-100 flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => {
                   setIsMobileMenuOpen(false);
                   openDrawer();
                 }}
-                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 text-white py-3 rounded-xl font-bold text-sm shadow-md"
+                className="flex-1 flex items-center justify-center gap-2 bg-[#0b2847] text-white py-2.5 rounded-lg font-bold text-xs"
               >
-                <ShoppingCart className="w-4 h-4" /> View Quotation Cart ({itemCount})
+                <ShoppingBag className="w-4 h-4" /> My Quote ({itemCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  openQuoteModal();
+                }}
+                className="flex-1 bg-[#0284c7] text-white py-2.5 rounded-lg font-bold text-xs"
+              >
+                Get a Quote
               </button>
             </div>
           </div>
