@@ -243,9 +243,6 @@ export function Footer() {
             <Link href="/privacy" className="hover:text-cyan-400 transition-colors">
               Privacy Policy
             </Link>
-            <Link href="/compare" className="hover:text-cyan-400 transition-colors">
-              Compare
-            </Link>
             <Link href="/wishlist" className="hover:text-cyan-400 transition-colors">
               Wishlist
             </Link>

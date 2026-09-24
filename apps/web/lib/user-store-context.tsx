@@ -4,12 +4,11 @@
 // @tanmayee/web — User Store Context
 // Features:
 // 1. Persistent Wishlist (localStorage)
-// 2. Persistent Compare List (localStorage, up to 4 items)
-// 3. User Interaction Tracking (views, searches, preferred categories & brands)
-// 4. Recommendation Engine ("Products You May Like")
+// 2. User Interaction Tracking (views, searches, preferred categories & brands)
+// 3. Recommendation Engine ("Products You May Like")
 // ============================================================================
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Product } from '@tanmayee/types';
 import { SEED_PRODUCTS } from '@tanmayee/database';
 
@@ -28,21 +27,10 @@ interface UserStoreContextType {
   toggleWishlist: (product: Product) => void;
   removeFromWishlist: (productId: string) => void;
 
-  // Compare
-  compareList: Product[];
-  compareCount: number;
-  isInCompare: (productId: string) => boolean;
-  toggleCompare: (product: Product) => void;
-  removeFromCompare: (productId: string) => void;
-  clearCompare: () => void;
-
   // Modals & Drawers
   isWishlistOpen: boolean;
   openWishlist: () => void;
   closeWishlist: () => void;
-  isCompareOpen: boolean;
-  openCompare: () => void;
-  closeCompare: () => void;
 
   // Interaction Tracking & Recommendations
   trackProductView: (product: Product) => void;
@@ -54,12 +42,10 @@ interface UserStoreContextType {
 const UserStoreContext = createContext<UserStoreContextType | undefined>(undefined);
 
 const WISHLIST_STORAGE_KEY = 'tt_wishlist_v1';
-const COMPARE_STORAGE_KEY = 'tt_compare_v1';
 const INTERACTIONS_STORAGE_KEY = 'tt_user_behavior_v1';
 
 export function UserStoreProvider({ children }: { children: React.ReactNode }) {
   const [wishlist, setWishlist] = useState<Product[]>([]);
-  const [compareList, setCompareList] = useState<Product[]>([]);
   const [interactions, setInteractions] = useState<UserInteractionData>({
     viewedProductIds: [],
     preferredCategories: {},
@@ -67,7 +53,6 @@ export function UserStoreProvider({ children }: { children: React.ReactNode }) {
     recentSearches: [],
   });
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
-  const [isCompareOpen, setIsCompareOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   // Initialize from localStorage
@@ -75,9 +60,6 @@ export function UserStoreProvider({ children }: { children: React.ReactNode }) {
     try {
       const savedWishlist = localStorage.getItem(WISHLIST_STORAGE_KEY);
       if (savedWishlist) setWishlist(JSON.parse(savedWishlist));
-
-      const savedCompare = localStorage.getItem(COMPARE_STORAGE_KEY);
-      if (savedCompare) setCompareList(JSON.parse(savedCompare));
 
       const savedInteractions = localStorage.getItem(INTERACTIONS_STORAGE_KEY);
       if (savedInteractions) setInteractions(JSON.parse(savedInteractions));
@@ -99,23 +81,18 @@ export function UserStoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (mounted) {
       try {
-        localStorage.setItem(COMPARE_STORAGE_KEY, JSON.stringify(compareList));
-      } catch {}
-    }
-  }, [compareList, mounted]);
-
-  useEffect(() => {
-    if (mounted) {
-      try {
         localStorage.setItem(INTERACTIONS_STORAGE_KEY, JSON.stringify(interactions));
       } catch {}
     }
   }, [interactions, mounted]);
 
   // Wishlist actions
-  const isInWishlist = (productId: string) => wishlist.some((p) => p.id === productId);
+  const isInWishlist = useCallback(
+    (productId: string) => wishlist.some((p) => p.id === productId),
+    [wishlist]
+  );
 
-  const toggleWishlist = (product: Product) => {
+  const toggleWishlist = useCallback((product: Product) => {
     setWishlist((prev) => {
       const exists = prev.some((p) => p.id === product.id);
       if (exists) {
@@ -124,38 +101,14 @@ export function UserStoreProvider({ children }: { children: React.ReactNode }) {
         return [...prev, product];
       }
     });
-  };
+  }, []);
 
-  const removeFromWishlist = (productId: string) => {
+  const removeFromWishlist = useCallback((productId: string) => {
     setWishlist((prev) => prev.filter((p) => p.id !== productId));
-  };
-
-  // Compare actions
-  const isInCompare = (productId: string) => compareList.some((p) => p.id === productId);
-
-  const toggleCompare = (product: Product) => {
-    setCompareList((prev) => {
-      const exists = prev.some((p) => p.id === product.id);
-      if (exists) {
-        return prev.filter((p) => p.id !== product.id);
-      } else {
-        if (prev.length >= 4) {
-          alert('You can compare a maximum of 4 products at once.');
-          return prev;
-        }
-        return [...prev, product];
-      }
-    });
-  };
-
-  const removeFromCompare = (productId: string) => {
-    setCompareList((prev) => prev.filter((p) => p.id !== productId));
-  };
-
-  const clearCompare = () => setCompareList([]);
+  }, []);
 
   // Behavioral Tracking
-  const trackProductView = (product: Product) => {
+  const trackProductView = useCallback((product: Product) => {
     setInteractions((prev) => {
       const viewed = [product.id, ...prev.viewedProductIds.filter((id) => id !== product.id)].slice(0, 20);
       const catCount = (prev.preferredCategories[product.category_id] || 0) + 1;
@@ -168,9 +121,9 @@ export function UserStoreProvider({ children }: { children: React.ReactNode }) {
         preferredBrands: { ...prev.preferredBrands, [product.brand_id]: brandCount },
       };
     });
-  };
+  }, []);
 
-  const trackCategoryClick = (categoryId: string) => {
+  const trackCategoryClick = useCallback((categoryId: string) => {
     setInteractions((prev) => ({
       ...prev,
       preferredCategories: {
@@ -178,56 +131,59 @@ export function UserStoreProvider({ children }: { children: React.ReactNode }) {
         [categoryId]: (prev.preferredCategories[categoryId] || 0) + 2,
       },
     }));
-  };
+  }, []);
 
-  const trackSearchQuery = (query: string) => {
+  const trackSearchQuery = useCallback((query: string) => {
     if (!query.trim()) return;
     setInteractions((prev) => ({
       ...prev,
       recentSearches: [query.trim(), ...prev.recentSearches.filter((q) => q !== query.trim())].slice(0, 10),
     }));
-  };
+  }, []);
 
   // Recommendation Engine
-  const getRecommendedProducts = (limit = 4, excludeIds: string[] = []): Product[] => {
-    const allProducts = SEED_PRODUCTS as Product[];
-    const excludeSet = new Set(excludeIds);
+  const getRecommendedProducts = useCallback(
+    (limit = 4, excludeIds: string[] = []): Product[] => {
+      const allProducts = SEED_PRODUCTS as Product[];
+      const excludeSet = new Set(excludeIds);
 
-    // Score products based on user interactions
-    const scored = allProducts
-      .filter((p) => !excludeSet.has(p.id))
-      .map((p) => {
-        let score = 0;
-        // Category affinity
-        if (interactions.preferredCategories[p.category_id]) {
-          score += interactions.preferredCategories[p.category_id] * 3;
-        }
-        // Brand affinity
-        if (interactions.preferredBrands[p.brand_id]) {
-          score += interactions.preferredBrands[p.brand_id] * 2;
-        }
-        // Recently viewed boost (but not exact current product)
-        if (interactions.viewedProductIds.includes(p.id)) {
-          score += 1;
-        }
-        // Featured boost
-        if (p.featured) score += 2;
+      // Score products based on user interactions
+      const scored = allProducts
+        .filter((p) => !excludeSet.has(p.id))
+        .map((p) => {
+          let score = 0;
+          // Category affinity
+          if (interactions.preferredCategories[p.category_id]) {
+            score += interactions.preferredCategories[p.category_id] * 3;
+          }
+          // Brand affinity
+          if (interactions.preferredBrands[p.brand_id]) {
+            score += interactions.preferredBrands[p.brand_id] * 2;
+          }
+          // Recently viewed boost (but not exact current product)
+          if (interactions.viewedProductIds.includes(p.id)) {
+            score += 1;
+          }
+          // Featured boost
+          if (p.featured) score += 2;
 
-        return { product: p, score };
-      });
+          return { product: p, score };
+        });
 
-    scored.sort((a, b) => b.score - a.score);
+      scored.sort((a, b) => b.score - a.score);
 
-    const result = scored.slice(0, limit).map((s) => s.product);
+      const result = scored.slice(0, limit).map((s) => s.product);
 
-    // Fallback if not enough scored items
-    if (result.length < limit) {
-      const remaining = allProducts.filter((p) => !excludeSet.has(p.id) && !result.some((r) => r.id === p.id));
-      result.push(...remaining.slice(0, limit - result.length));
-    }
+      // Fallback if not enough scored items
+      if (result.length < limit) {
+        const remaining = allProducts.filter((p) => !excludeSet.has(p.id) && !result.some((r) => r.id === p.id));
+        result.push(...remaining.slice(0, limit - result.length));
+      }
 
-    return result;
-  };
+      return result;
+    },
+    [interactions]
+  );
 
   return (
     <UserStoreContext.Provider
@@ -238,19 +194,9 @@ export function UserStoreProvider({ children }: { children: React.ReactNode }) {
         toggleWishlist,
         removeFromWishlist,
 
-        compareList,
-        compareCount: compareList.length,
-        isInCompare,
-        toggleCompare,
-        removeFromCompare,
-        clearCompare,
-
         isWishlistOpen,
         openWishlist: () => setIsWishlistOpen(true),
         closeWishlist: () => setIsWishlistOpen(false),
-        isCompareOpen,
-        openCompare: () => setIsCompareOpen(true),
-        closeCompare: () => setIsCompareOpen(false),
 
         trackProductView,
         trackCategoryClick,

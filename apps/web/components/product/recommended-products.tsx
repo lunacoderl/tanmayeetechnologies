@@ -8,7 +8,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Sparkles, ArrowRight, Plus, Check, Heart, Scale } from 'lucide-react';
+import { Sparkles, ArrowRight, Plus, Check } from 'lucide-react';
 import { useUserStore } from '../../lib/user-store-context';
 import { useCart } from '../../lib/cart-context';
 import { ProductCard } from './product-card';
@@ -29,7 +29,7 @@ export function RecommendedProducts({
   excludeId,
   variant = 'grid',
 }: RecommendedProductsProps) {
-  const { getRecommendedProducts, isInWishlist, toggleWishlist, isInCompare, toggleCompare } = useUserStore();
+  const { getRecommendedProducts } = useUserStore();
   const { addToCart } = useCart();
   const [recommended, setRecommended] = useState<Product[]>([]);
   const [addedIds, setAddedIds] = useState<Record<string, boolean>>({});

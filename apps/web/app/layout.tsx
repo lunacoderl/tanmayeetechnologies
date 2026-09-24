@@ -8,7 +8,6 @@ import { CartProvider } from '../lib/cart-context';
 import { UserStoreProvider } from '../lib/user-store-context';
 import { CartDrawer } from '../components/cart/cart-drawer';
 import { WishlistDrawer } from '../components/cart/wishlist-drawer';
-import { CompareBar } from '../components/cart/compare-modal';
 import { QuoteModal } from '../components/cart/quote-modal';
 import { FloatingCTAs } from '../components/layout/floating-ctas';
 
@@ -227,7 +226,6 @@ export default function RootLayout({
             <Footer />
             <CartDrawer />
             <WishlistDrawer />
-            <CompareBar />
             <QuoteModal />
             <FloatingCTAs />
           </CartProvider>

@@ -4,7 +4,6 @@
 // @tanmayee/web — Ultra-Premium Product Card Component
 // Features:
 // - Wishlist toggle with instant reactive heart animation & user store persistence
-// - Compare toggle with live badge count & limit handling (up to 4 items)
 // - Behavioral tracking on view/click (tracks product, category, and brand)
 // - Ambient edge image fit with zero harsh crop & skeleton loader
 // - Distinct model number & capacity badge pills
@@ -24,7 +23,6 @@ import {
   Tag, 
   ShieldCheck,
   Heart,
-  Scale,
   Star
 } from 'lucide-react';
 import { useCart } from '../../lib/cart-context';
@@ -46,8 +44,6 @@ export function ProductCard({ product }: ProductCardProps) {
   const { 
     isInWishlist, 
     toggleWishlist, 
-    isInCompare, 
-    toggleCompare, 
     trackProductView, 
     trackCategoryClick 
   } = useUserStore();
@@ -57,7 +53,6 @@ export function ProductCard({ product }: ProductCardProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
 
   const inWishlist = isInWishlist(product.id);
-  const inCompare = isInCompare(product.id);
 
   const brandName = product.brand_name || 'Brand';
   const isBlueStar = brandName.toLowerCase().includes('blue star') || product.slug.toLowerCase().includes('blue-star');
@@ -148,13 +143,6 @@ export function ProductCard({ product }: ProductCardProps) {
     toggleWishlist(product);
   };
 
-  const handleCompareToggle = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    handleInteraction();
-    toggleCompare(product);
-  };
-
   return (
     <div 
       className="bg-white rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-2xl hover:border-cyan-400/80 transition-all duration-300 flex flex-col justify-between overflow-hidden group relative interactive-card animate-fade-in-up"
@@ -189,7 +177,7 @@ export function ProductCard({ product }: ProductCardProps) {
             />
           </Link>
 
-          {/* Top Row: Brand Badge + Action Icons (Wishlist, Compare, Share) */}
+          {/* Top Row: Brand Badge + Action Icons (Wishlist, Share) */}
           <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-20 pointer-events-auto">
             {/* Brand Pill */}
             <div className="flex flex-col gap-1">
@@ -226,25 +214,6 @@ export function ProductCard({ product }: ProductCardProps) {
                 <Heart
                   className={`w-3.5 h-3.5 transition-transform ${
                     inWishlist ? 'fill-rose-500 text-rose-500 scale-110' : ''
-                  }`}
-                />
-              </button>
-
-              {/* Compare Toggle */}
-              <button
-                type="button"
-                onClick={handleCompareToggle}
-                className={`w-7 h-7 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 ${
-                  inCompare
-                    ? 'bg-cyan-50 text-cyan-600 shadow-sm border border-cyan-200'
-                    : 'text-slate-500 hover:text-cyan-600 hover:bg-cyan-50/50'
-                }`}
-                title={inCompare ? 'Remove from Compare' : 'Add to Compare'}
-                aria-label="Compare"
-              >
-                <Scale
-                  className={`w-3.5 h-3.5 transition-transform ${
-                    inCompare ? 'text-cyan-600 scale-110' : ''
                   }`}
                 />
               </button>
@@ -359,7 +328,7 @@ export function ProductCard({ product }: ProductCardProps) {
             {product.short_description || product.description}
           </p>
 
-          {/* Price display & Compare Pill */}
+          {/* Price display */}
           <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
             {product.reference_price ? (
               <div>
@@ -376,20 +345,6 @@ export function ProductCard({ product }: ProductCardProps) {
                 </div>
               </div>
             )}
-
-            {/* Compare status badge */}
-            <button
-              type="button"
-              onClick={handleCompareToggle}
-              className={`text-[10px] font-bold px-2 py-1 rounded-lg transition-colors flex items-center gap-1 border ${
-                inCompare
-                  ? 'bg-cyan-50 text-cyan-700 border-cyan-300'
-                  : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200'
-              }`}
-            >
-              <Scale className="w-3 h-3" />
-              {inCompare ? 'Comparing' : 'Compare'}
-            </button>
           </div>
         </div>
       </div>

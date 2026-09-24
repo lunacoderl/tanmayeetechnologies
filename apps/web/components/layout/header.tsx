@@ -6,7 +6,7 @@
 // 1. Top Bar: "Your Partner for Cooling Solutions", hotline, email, "Get a Quote"
 // 2. Official Tanmayee Technologies Logo (Circular + Modern Typography)
 // 3. Robust Character-by-Character Instant Live Search across 155+ Products & Services
-// 4. Fully Functional Compare (live count) & Wishlist (live count) Buttons
+// 4. Fully Functional Wishlist (live count) & Quotation Cart Buttons
 // 5. Navigation Bar with Complete AC Categories & Refrigeration Mega-Menus
 // ============================================================================
 
@@ -16,7 +16,6 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   Search,
   Heart,
-  Scale,
   ShoppingBag,
   ChevronDown,
   ArrowRight,
@@ -47,8 +46,6 @@ export function Header() {
   const {
     wishlistCount,
     openWishlist,
-    compareCount,
-    openCompare,
     trackSearchQuery,
     trackProductView,
   } = useUserStore();
@@ -423,28 +420,8 @@ export function Header() {
               )}
             </div>
 
-            {/* Right: Compare, Wishlist, My Quote Action Items */}
+            {/* Right: Wishlist, My Quote Action Items */}
             <div className="flex items-center gap-5 sm:gap-7 shrink-0">
-              {/* Compare Icon Button */}
-              <button
-                type="button"
-                onClick={openCompare}
-                className="flex flex-col items-center group relative text-slate-600 hover:text-[#0284c7] transition-colors cursor-pointer"
-                title="View Product Comparison"
-              >
-                <div className="relative">
-                  <Scale className="w-5 h-5 text-slate-700 group-hover:text-[#0284c7] transition-colors" />
-                  {compareCount > 0 && (
-                    <span className="absolute -top-1.5 -right-2 bg-[#0b2847] text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-white shadow-sm animate-pop-scale">
-                      {compareCount}
-                    </span>
-                  )}
-                </div>
-                <span className="text-[10px] font-semibold text-slate-600 mt-1">
-                  Compare
-                </span>
-              </button>
-
               {/* Wishlist Icon Button */}
               <button
                 type="button"
@@ -1027,17 +1004,7 @@ export function Header() {
               </Link>
             </div>
 
-            <div className="pt-3 border-t border-slate-100 grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  openCompare();
-                }}
-                className="flex items-center justify-center gap-1.5 bg-slate-100 text-slate-800 py-2.5 rounded-lg font-bold text-xs"
-              >
-                <Scale className="w-3.5 h-3.5" /> Compare ({compareCount})
-              </button>
+            <div className="pt-3 border-t border-slate-100 grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={() => {

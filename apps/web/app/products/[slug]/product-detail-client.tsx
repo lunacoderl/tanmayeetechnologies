@@ -38,7 +38,6 @@ import {
   HeartHandshake,
   CheckCheck,
   Heart,
-  Scale,
 } from 'lucide-react';
 import { Product } from '@tanmayee/types';
 import { COMPANY } from '@tanmayee/config';
@@ -71,8 +70,6 @@ export function ProductDetailClient({
   const {
     isInWishlist,
     toggleWishlist,
-    isInCompare,
-    toggleCompare,
     trackProductView,
     trackCategoryClick,
   } = useUserStore();
@@ -82,14 +79,13 @@ export function ProductDetailClient({
   const [added, setAdded] = useState(false);
 
   const inWishlist = isInWishlist(product.id);
-  const inCompare = isInCompare(product.id);
 
   React.useEffect(() => {
     trackProductView(product);
     if (product.category_id) {
       trackCategoryClick(product.category_id);
     }
-  }, [product.id, trackProductView, trackCategoryClick]);
+  }, [product.id, product.category_id, trackProductView, trackCategoryClick]);
 
   const brandName = brand?.name || product.brand_name || 'Manufacturer';
   const isBlueStar = brandName.toLowerCase().includes('blue star');
@@ -405,21 +401,6 @@ export function ProductDetailClient({
               >
                 <Heart className={`w-4 h-4 ${inWishlist ? 'fill-rose-500 text-rose-500' : 'text-slate-500'}`} />
                 <span className="hidden sm:inline">{inWishlist ? 'Saved' : 'Wishlist'}</span>
-              </button>
-
-              {/* Compare Button */}
-              <button
-                type="button"
-                onClick={() => toggleCompare(product)}
-                className={`h-12 px-3 rounded-2xl border transition-all flex items-center gap-1.5 font-bold text-xs ${
-                  inCompare
-                    ? 'bg-cyan-50 border-cyan-300 text-cyan-700 shadow-sm'
-                    : 'border-slate-300 hover:border-cyan-300 bg-white hover:bg-cyan-50/50 text-slate-700'
-                }`}
-                title={inCompare ? 'Remove from Compare' : 'Add to Compare'}
-              >
-                <Scale className={`w-4 h-4 ${inCompare ? 'text-cyan-600' : 'text-slate-500'}`} />
-                <span className="hidden sm:inline">{inCompare ? 'Comparing' : 'Compare'}</span>
               </button>
 
               {/* Share Button */}
