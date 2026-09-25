@@ -1,7 +1,7 @@
 # Project State: Tanmayee Technologies Platform
 
-**Last Updated:** 2026-09-25 21:35 IST  
-**Status:** **Completed & Verified** — Fixed Admin `brand_name.toLowerCase()` TypeError, Synchronized 155 Authentic Catalog Models to Live Supabase Postgres, Connected Admin Product & Media Updates to Public Storefront with Prioritized Media Rendering.  
+**Last Updated:** 2026-09-25 22:15 IST  
+**Status:** **Completed & Verified** — Resolved Storefront Supabase RLS anonymous key block, fully enabled real-time synchronization between Admin edits and Web Storefront, and implemented complete database-backed Product Version History with instant one-click rollback in `apps/admin`.  
 **Environment:** Local Development + Supabase Postgres Integration + Apify Cloud Integration (Actor ID: `IQiZE0gndS4uaVfUp`)
 
 ---
@@ -46,8 +46,8 @@ The platform consists of:
 
 | Service / Component | Status | Port / Target | Details |
 | :--- | :--- | :--- | :--- |
-| Storefront (`apps/web`) | **Active** | `http://localhost:3000` | HTTP 200, live Supabase sync, left vertical media gallery with hover/click & video, Image SEO schema, canonical sitemap |
-| Admin Portal (`apps/admin`) | **Active** | `http://localhost:3001` | HTTP 200, zero mock data, multi-image batch dropzone upload, live Supabase product & media persistence |
+| Storefront (`apps/web`) | **Active** | `http://localhost:3000` | HTTP 200, direct Supabase service-role sync bypassing RLS, left vertical media gallery with hover/click & video, Image SEO schema, canonical sitemap |
+| Admin Portal (`apps/admin`) | **Active** | `http://localhost:3001` | HTTP 200, zero mock data, multi-image batch dropzone upload, live Supabase product & media persistence, dynamic Product Version History modal with 1-click restore |
 | Apify Actor | **Deployed & Ready** | Apify Cloud ID `IQiZE0gndS4uaVfUp` | Token configured, build succeeded |
-| Database (`packages/database`) | **Synchronized** | Supabase Postgres + Local fallback | Live bidirectional sync for products, `product_media`, `product_attributes`, and commercial offers |
+| Database (`packages/database`) | **Synchronized** | Supabase Postgres + Local fallback | Live bidirectional sync for products, `product_media`, `product_attributes`, `product_versions` snapshots, and commercial offers |
 

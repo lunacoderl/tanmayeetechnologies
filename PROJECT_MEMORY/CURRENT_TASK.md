@@ -43,3 +43,9 @@
   - Eliminated `TypeError: Cannot read properties of undefined (reading 'toLowerCase')` on admin products page by safely deriving `brand_name` and `category_name` via `SEED_BRANDS` and `SEED_CATEGORIES`.
   - Executed `scripts/sync-catalog-to-supabase.mjs`: purged 113 outdated dummy database rows and seeded all 155 authentic commercial models with deterministic UUIDs, 502 media records, and 2,325 attributes into Supabase.
   - Ensured seamless 2-way connection between Admin and Storefront cards/details with prioritized image fallback.
+- [x] **Storefront RLS Key Fix & Live Database Product Version History (BUG-012, BUG-013):**
+  - Fixed `getSupabaseAdmin()` key resolution to strictly use `SUPABASE_SERVICE_ROLE_KEY`, bypassing RLS on server-side queries so `apps/web` no longer silently falls back to stale static seed data.
+  - Built comprehensive product version history persistence in Supabase `product_versions` on every product save.
+  - Created `/api/products/[id]/versions` API route supporting version queries and one-click rollback.
+  - Replaced hardcoded version modal in `apps/admin/app/products/page.tsx` with dynamic version list, live active badges, change summaries, and one-click restore functionality.
+

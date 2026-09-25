@@ -134,6 +134,32 @@
   3. Updated `apps/web/components/product/product-card.tsx` to check `(product as any).primary_image_url`, `product.media?.find(m => m.is_primary)?.url`, `product.media?.[0]?.url`, and `product.gallery_urls?.[0]` before falling back to brand defaults.
 - **Status:** **RESOLVED**
 
+---
 
+## BUG-012: Web Storefront Silent Fallback to Stale Seed Products Due to Anon Key RLS Blocking
+- **Error:** Changes and uploaded images saved in Admin were not appearing on the public storefront (`apps/web` on port 3000), which continued to render old hardcoded seed items (`id: p0000001-...`).
+- **Root Cause:**
+  1. In `packages/database/src/index.ts`, `getSupabaseAdmin()` used `process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || DEFAULT_SERVICE_ROLE_KEY`.
+  2. Because `apps/web/.env.local` defined `NEXT_PUBLIC_SUPABASE_ANON_KEY`, the client initialization resolved to the anonymous public key instead of the service role key.
+  3. Supabase PostgreSQL `products` table has Row-Level Security (RLS) enabled, which blocked anonymous SELECT queries and returned 0 rows (`data: []`).
+  4. `fetchLiveProductsFromSupabase()` in `apps/web` caught the empty response and fell back to `getMergedProducts()`, causing the storefront to display hardcoded seed data without any newly saved images or modifications.
+- **Fix:**
+  1. Fixed key precedence in `packages/database/src/index.ts` so `getSupabaseAdmin()` strictly uses `process.env.SUPABASE_SERVICE_ROLE_KEY || DEFAULT_SERVICE_ROLE_KEY`, guaranteeing server-side queries always bypass RLS.
+  2. In `packages/database/src/product-storage.ts`, ensured `id`, `current_version`, `primary_image_url`, and `gallery_urls` are mapped from Supabase rows and take precedence during merging.
+  3. Verified both `apps/admin` (port 3001) and `apps/web` (port 3000) return identical live product records with updated images from Supabase.
+- **Status:** **RESOLVED**
 
+---
 
+## BUG-013: Product Version History Modal Displaying Hardcoded Mock Data & Missing Database Persistence
+- **Error:** Opening the Version History modal in `apps/admin/app/products` displayed static placeholder text ("Version 1 (Initial Seed) - alert('Version snapshot restored successfully')") and did not track edits or restore previous states.
+- **Root Cause:**
+  1. `saveCustomProduct()` in `packages/database/src/product-storage.ts` never inserted historical snapshots into the existing Supabase `product_versions` table and did not increment `current_version`.
+  2. `apps/admin/app/products/page.tsx` had a hardcoded modal UI with dummy text and a dummy `alert()` call.
+  3. No API route existed for querying or restoring product versions.
+- **Fix:**
+  1. Upgraded `saveCustomProduct()` in `packages/database/src/product-storage.ts` to query `current_version`, increment to `nextVersion`, update `current_version` on `products`, and insert a complete JSONB snapshot with `change_summary` into `product_versions`.
+  2. Implemented `fetchProductVersions(productIdOrSlug)` and `restoreProductVersion(productIdOrSlug, versionNumber)` in `product-storage.ts`.
+  3. Created `apps/admin/app/api/products/[id]/versions/route.ts` with `GET` (returns live versions array) and `POST` (executes atomic rollback to any past snapshot).
+  4. Rewrote the Version History Modal in `apps/admin/app/products/page.tsx` with dynamic fetching, live version badges (`CURRENT ACTIVE` vs `Archived Snapshot`), formatted timestamps, image thumbnail previews, and a real one-click Restore button with feedback toasts.
+- **Status:** **RESOLVED**

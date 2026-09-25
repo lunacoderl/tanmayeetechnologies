@@ -4,6 +4,22 @@ All notable changes and technical implementation milestones are documented in th
 
 ---
 
+## [2026-09-25] - Fix Storefront Live Supabase RLS Sync & Database-Backed Product Version History
+
+### Fixed & Enhanced
+- **Storefront Live Supabase Sync (BUG-012)**:
+  - Fixed client initialization in `packages/database/src/index.ts` so `getSupabaseAdmin()` strictly uses `process.env.SUPABASE_SERVICE_ROLE_KEY || DEFAULT_SERVICE_ROLE_KEY`.
+  - Resolved the bug where `NEXT_PUBLIC_SUPABASE_ANON_KEY` in `apps/web/.env.local` caused `apps/web` to use the anon key which was blocked by Row Level Security (RLS) on `products`, leading `fetchLiveProductsFromSupabase()` to silently return 0 rows and fall back to old static seed data.
+  - Verified that both `apps/admin` (port 3001) and `apps/web` (port 3000) now return the identical live 155 products from Supabase with newly added images.
+- **Product Version History & One-Click Rollback System (BUG-013)**:
+  - Eliminated hardcoded placeholder text in the admin Version History modal.
+  - Upgraded `saveCustomProduct()` in `packages/database/src/product-storage.ts` to automatically increment `current_version`, update `products`, and record a comprehensive JSONB snapshot with `change_summary` into `product_versions`.
+  - Implemented `fetchProductVersions()` and `restoreProductVersion()` in `packages/database/src/product-storage.ts`.
+  - Created `apps/admin/app/api/products/[id]/versions/route.ts` supporting `GET` (version list) and `POST` (atomic rollback to any past version).
+  - Built an interactive, dynamic Version History modal in `apps/admin/app/products/page.tsx` displaying live version badges, timestamps, change summaries, image thumbnails, and one-click rollback functionality with real-time feedback.
+
+---
+
 ## [2026-09-25] - Fix Admin brand_name TypeError & Sync 155-Catalog to Live Supabase Database
 
 ### Fixed

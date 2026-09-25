@@ -274,6 +274,7 @@ export async function fetchLiveProductsFromSupabase(): Promise<any[]> {
         attributes,
         seo_title: row.seo_title || matchingSeed?.seo_title,
         seo_description: row.seo_description || matchingSeed?.seo_description,
+        current_version: row.current_version || matchingSeed?.current_version || 1,
         updated_at: row.updated_at,
       };
     });
@@ -296,12 +297,14 @@ export async function fetchLiveProductsFromSupabase(): Promise<any[]> {
         merged[idx] = {
           ...existing,
           ...custom,
+          id: custom.id || existing.id,
           brand_name: custom.brand_name || existing.brand_name,
           category_name: custom.category_name || existing.category_name,
           primary_image_url: custom.primary_image_url || existing.primary_image_url,
           gallery_urls: custom.gallery_urls?.length ? custom.gallery_urls : existing.gallery_urls,
           media: custom.media?.length ? custom.media : existing.media,
           attributes: custom.attributes?.length ? custom.attributes : existing.attributes,
+          current_version: custom.current_version || existing.current_version || 1,
         } as any;
       } else {
         merged.unshift(custom as any);
@@ -361,7 +364,7 @@ export async function saveCustomProduct(productPayload: any): Promise<{ success:
       if (supabase) {
         // Find existing product by slug, model_number, or id
         let targetId: string | null = null;
-        let query = supabase.from('products').select('id, slug, model_number');
+        let query = supabase.from('products').select('id, slug, model_number, current_version');
         if (updatedPayload.slug) {
           query = query.eq('slug', updatedPayload.slug);
         } else if (updatedPayload.model_number) {
@@ -371,6 +374,12 @@ export async function saveCustomProduct(productPayload: any): Promise<{ success:
         }
 
         const { data: existingRows } = await query;
+        let currentVersion = 1;
+        if (existingRows && existingRows.length > 0) {
+          targetId = existingRows[0].id;
+          currentVersion = existingRows[0].current_version || 1;
+        }
+        const nextVersion = currentVersion + 1;
 
         const productData: any = {
           product_name: updatedPayload.product_name,
@@ -385,6 +394,7 @@ export async function saveCustomProduct(productPayload: any): Promise<{ success:
           price_range_max: updatedPayload.base_mrp || null,
           seo_title: updatedPayload.seo_title || null,
           seo_description: updatedPayload.seo_description || null,
+          current_version: nextVersion,
           updated_at: now,
         };
 
@@ -497,6 +507,63 @@ export async function saveCustomProduct(productPayload: any): Promise<{ success:
               await supabase.from('product_attributes').insert(attrsToInsert);
             }
           }
+
+          // 6. Record complete version history snapshot in product_versions
+          try {
+            const { data: vCount } = await supabase
+              .from('product_versions')
+              .select('version_number')
+              .eq('product_id', targetId);
+
+            if (!vCount || vCount.length === 0) {
+              await supabase.from('product_versions').insert({
+                product_id: targetId,
+                version_number: 1,
+                snapshot: {
+                  ...(existingRows?.[0] || {}),
+                  product_name: productData.product_name,
+                  model_number: productData.model_number,
+                  brand_name: updatedPayload.brand_name,
+                  category_name: updatedPayload.category_name,
+                  primary_image_url: updatedPayload.primary_image_url,
+                  gallery_urls: gallery,
+                  media: mediaToInsert,
+                },
+                change_summary: 'Version 1: Initial catalog release',
+                created_at: (existingRows?.[0] as any)?.created_at || now,
+              });
+            }
+
+            const versionSnapshot = {
+              id: targetId,
+              ...productData,
+              brand_id: updatedPayload.brand_id,
+              category_id: updatedPayload.category_id,
+              brand_name: updatedPayload.brand_name,
+              category_name: updatedPayload.category_name,
+              primary_image_url: updatedPayload.primary_image_url,
+              gallery_urls: gallery,
+              media: mediaToInsert,
+              attributes: updatedPayload.attributes,
+            };
+
+            const mediaCount = mediaToInsert.length;
+            const versionSummary =
+              updatedPayload._versionSummary ||
+              `Version ${nextVersion}: Updated specifications, pricing & ${mediaCount} media asset${mediaCount === 1 ? '' : 's'}`;
+
+            await supabase.from('product_versions').insert({
+              product_id: targetId,
+              version_number: nextVersion,
+              snapshot: versionSnapshot,
+              change_summary: versionSummary,
+              created_at: now,
+            });
+
+            updatedPayload.current_version = nextVersion;
+          } catch (vErr) {
+            console.warn('Product version history recording notice:', vErr);
+          }
         }
       }
     } catch (sbErr) {
@@ -509,3 +576,119 @@ export async function saveCustomProduct(productPayload: any): Promise<{ success:
     return { success: false, product: productPayload, error: err.message || 'Failed to save product' };
   }
 }
+
+/**
+ * Fetch complete version history for a given product
+ */
+export async function fetchProductVersions(productIdOrSlug: string): Promise<any[]> {
+  try {
+    const supabase = getSupabaseAdmin();
+    if (!supabase) return [];
+
+    let targetId = productIdOrSlug;
+    if (productIdOrSlug.startsWith('p') || !productIdOrSlug.includes('-')) {
+      const { data: pRow } = await supabase
+        .from('products')
+        .select('id')
+        .or(`slug.eq.${productIdOrSlug},model_number.eq.${productIdOrSlug}`)
+        .limit(1);
+      if (pRow && pRow[0]) targetId = pRow[0].id;
+    } else {
+      const { data: pRow } = await supabase
+        .from('products')
+        .select('id')
+        .or(`id.eq.${productIdOrSlug},slug.eq.${productIdOrSlug}`)
+        .limit(1);
+      if (pRow && pRow[0]) targetId = pRow[0].id;
+    }
+
+    const { data: versions, error } = await supabase
+      .from('product_versions')
+      .select('*')
+      .eq('product_id', targetId)
+      .order('version_number', { ascending: false });
+
+    if (error) {
+      console.warn('fetchProductVersions error:', error.message);
+      return [];
+    }
+
+    // If no versions exist yet, generate initial Version 1 snapshot on-the-fly
+    if (!versions || versions.length === 0) {
+      const { data: pData } = await supabase
+        .from('products')
+        .select('*, product_media(*), product_attributes(*)')
+        .eq('id', targetId)
+        .limit(1);
+
+      if (pData && pData[0]) {
+        const p = pData[0];
+        const v1 = {
+          product_id: targetId,
+          version_number: 1,
+          snapshot: {
+            ...p,
+            media: p.product_media || [],
+            attributes: p.product_attributes || [],
+          },
+          change_summary: 'Version 1: Initial release from manufacturer catalogue',
+          created_at: p.created_at || new Date().toISOString(),
+        };
+        await supabase.from('product_versions').insert(v1);
+        return [v1];
+      }
+    }
+
+    return versions || [];
+  } catch (err) {
+    console.error('fetchProductVersions error:', err);
+    return [];
+  }
+}
+
+/**
+ * Restore a specific product version from snapshot
+ */
+export async function restoreProductVersion(
+  productIdOrSlug: string,
+  versionNumber: number
+): Promise<{ success: boolean; product?: any; error?: string }> {
+  try {
+    const supabase = getSupabaseAdmin();
+    if (!supabase) return { success: false, error: 'Database client unavailable' };
+
+    let targetId = productIdOrSlug;
+    const { data: pRow } = await supabase
+      .from('products')
+      .select('id, slug, product_name')
+      .or(`id.eq.${productIdOrSlug},slug.eq.${productIdOrSlug}`)
+      .limit(1);
+
+    if (pRow && pRow[0]) {
+      targetId = pRow[0].id;
+    }
+
+    const { data: vRows, error: vErr } = await supabase
+      .from('product_versions')
+      .select('*')
+      .eq('product_id', targetId)
+      .eq('version_number', versionNumber)
+      .limit(1);
+
+    if (vErr || !vRows || vRows.length === 0) {
+      return { success: false, error: `Version ${versionNumber} not found for this product` };
+    }
+
+    const snapshot = vRows[0].snapshot;
+    const restorePayload = {
+      ...snapshot,
+      id: targetId,
+      _versionSummary: `Restored to Version ${versionNumber} snapshot`,
+    };
+
+    return await saveCustomProduct(restorePayload);
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to restore product version' };
+  }
+}
+
