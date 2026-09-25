@@ -1,12 +1,17 @@
 // ============================================================================
 // @tanmayee/web — Product Detail Page (/products/[slug])
-// Server Component with Dynamic SEO, OpenGraph, JSON-LD Schema.org Product markup
+// Server Component with Live Supabase Sync, Dynamic SEO, Multi-Image OpenGraph,
+// and ImageObject JSON-LD Schema.org Product markup
 // ============================================================================
 
 import React from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getMergedProducts, SEED_BRANDS, SEED_CATEGORIES } from '@tanmayee/database';
+import {
+  fetchLiveProductsFromSupabase,
+  SEED_BRANDS,
+  SEED_CATEGORIES,
+} from '@tanmayee/database';
 import { COMPANY } from '@tanmayee/config';
 import { ProductDetailClient } from './product-detail-client';
 
@@ -16,7 +21,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const allProducts = getMergedProducts();
+  const allProducts = await fetchLiveProductsFromSupabase();
   const product = allProducts.find((p) => p.slug === slug || p.id === slug);
 
   if (!product) {
@@ -27,8 +32,28 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const brand = SEED_BRANDS.find((b) => b.id === product.brand_id);
   const brandName = brand?.name || product.brand_name || 'Commercial Cooling';
-  const imageUrl = product.media?.[0]?.url || 'https://www.rockwell.co.in/cdn/shop/files/GFR250.png';
+  const defaultFallback = 'https://www.rockwell.co.in/cdn/shop/files/GFR250.png';
 
+  // Gather all high-res image URLs for OpenGraph & Twitter
+  const allImages = (Array.isArray(product.media) && product.media.length > 0)
+    ? product.media
+        .filter((m: any) => m.type !== 'VIDEO')
+        .map((m: any, i: number) => ({
+          url: typeof m === 'string' ? m : m.url,
+          width: 1200,
+          height: 900,
+          alt: `${product.product_name} - ${brandName} View ${i + 1}`,
+        }))
+    : [
+        {
+          url: product.primary_image_url || defaultFallback,
+          width: 1200,
+          height: 900,
+          alt: product.product_name,
+        },
+      ];
+
+  const primaryUrl = allImages[0]?.url || defaultFallback;
   const title = `${product.product_name} | Tanmayee Technologies Vizag`;
   const description = `${product.product_name} (Model: ${product.model_number || 'N/A'}). Authorized ${brandName} sales & service partner in Visakhapatnam, Andhra Pradesh. Genuine factory warranty, wholesale B2B pricing, turnkey installation.`;
 
@@ -42,6 +67,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       `${brandName} dealer Andhra Pradesh`,
       'commercial refrigeration quotation',
       'deep freezer B2B supplier',
+      'commercial air conditioner Visakhapatnam',
       'Tanmayee Technologies',
     ].filter(Boolean),
     alternates: {
@@ -52,14 +78,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description,
       url: `https://www.tanmayeetechnologies.com/products/${product.slug}`,
       siteName: 'Tanmayee Technologies',
-      images: [
-        {
-          url: imageUrl,
-          width: 800,
-          height: 600,
-          alt: product.product_name,
-        },
-      ],
+      images: allImages,
       locale: 'en_IN',
       type: 'website',
     },
@@ -67,14 +86,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       card: 'summary_large_image',
       title,
       description,
-      images: [imageUrl],
+      images: [primaryUrl],
     },
   };
 }
 
 export default async function ProductDetailPage({ params }: PageProps) {
   const { slug } = await params;
-  const allProducts = getMergedProducts();
+  const allProducts = await fetchLiveProductsFromSupabase();
   const product = allProducts.find((p) => p.slug === slug || p.id === slug);
 
   if (!product) {
@@ -85,19 +104,30 @@ export default async function ProductDetailPage({ params }: PageProps) {
   const category = SEED_CATEGORIES.find((c) => c.id === product.category_id);
 
   // Similar products in same category or brand
-  const similarProducts = allProducts.filter(
-    (p) => p.id !== product.id && (p.category_id === product.category_id || p.brand_id === product.brand_id)
-  ).slice(0, 4);
+  const similarProducts = allProducts
+    .filter((p) => p.id !== product.id && (p.category_id === product.category_id || p.brand_id === product.brand_id))
+    .slice(0, 4);
 
-  const imageUrl = product.media?.[0]?.url || 'https://www.rockwell.co.in/cdn/shop/files/GFR250.png';
   const brandName = brand?.name || product.brand_name || 'Brand';
+  const defaultFallback = 'https://www.rockwell.co.in/cdn/shop/files/GFR250.png';
+  const primaryImgUrl = product.primary_image_url || product.media?.[0]?.url || defaultFallback;
 
-  // Robust JSON-LD Product Schema for Google Search Console & Rich Snippets
+  // Enriched schema.org/Product with ImageObject array for Google Image Search
+  const imagesSchema = (Array.isArray(product.media) && product.media.length > 0)
+    ? product.media.map((m: any, idx: number) => ({
+        '@type': 'ImageObject',
+        url: typeof m === 'string' ? m : m.url,
+        contentUrl: typeof m === 'string' ? m : m.url,
+        name: `${product.product_name} View ${idx + 1}`,
+        caption: `${product.product_name} - Authorized ${brandName} Distributor Visakhapatnam (Angle ${idx + 1})`,
+      }))
+    : [primaryImgUrl];
+
   const productJsonLd = {
     '@context': 'https://schema.org/',
     '@type': 'Product',
     name: product.product_name,
-    image: product.media?.map((m: any) => m.url) || [imageUrl],
+    image: imagesSchema,
     description: product.description || product.short_description,
     sku: product.sku || product.model_number || product.id,
     mpn: product.model_number || product.sku,

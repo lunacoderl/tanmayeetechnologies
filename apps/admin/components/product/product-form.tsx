@@ -332,6 +332,9 @@ export function ProductForm({ initialData, isEdit = false }: ProductFormProps) {
       const selectedBrand = SEED_BRANDS.find((b) => b.id === formData.brand_id) || SEED_BRANDS[0];
       const selectedCat = SEED_CATEGORIES.find((c) => c.id === formData.category_id) || SEED_CATEGORIES[0];
 
+      const isVideoUrl = (u: string) =>
+        /\.(mp4|webm|mov|ogg)($|\?)/i.test(u) || u.includes('youtube.com') || u.includes('youtu.be') || u.includes('vimeo.com');
+
       // Build consolidated product object
       const productPayload = {
         ...formData,
@@ -341,12 +344,21 @@ export function ProductForm({ initialData, isEdit = false }: ProductFormProps) {
         reference_price: formData.base_mrp,
         description: formData.long_description,
         media: [
-          { url: formData.primary_image_url, type: 'IMAGE', is_primary: true, alt: formData.product_name },
-          ...formData.gallery_urls.map((url: string) => ({
+          ...(formData.primary_image_url
+            ? [
+                {
+                  url: formData.primary_image_url,
+                  type: isVideoUrl(formData.primary_image_url) ? 'VIDEO' : 'MAIN_IMAGE',
+                  is_primary: true,
+                  alt: formData.product_name,
+                },
+              ]
+            : []),
+          ...formData.gallery_urls.map((url: string, i: number) => ({
             url,
-            type: 'IMAGE',
+            type: isVideoUrl(url) ? 'VIDEO' : 'GALLERY',
             is_primary: false,
-            alt: `${formData.product_name} View`,
+            alt: `${formData.product_name} View ${i + 2}`,
           })),
         ],
         updated_at: new Date().toISOString(),

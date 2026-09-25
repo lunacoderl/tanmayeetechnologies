@@ -1,96 +1,41 @@
-# Current Task: Streamlined Navbar, Admin Product Editor, Brand Badges & GitHub Repository Deployment
+# Current Task: Multi-Image Drag-and-Drop Batch Upload, Live Supabase Two-Way Sync, Vertical Media Gallery, Image SEO & Sitemap
 
 **Status:** COMPLETED  
 **Assignee:** Antigravity AI Agent  
-**Goal:** Streamline the navbar from 7 crowded links to 4 clean, spacious items with a rich Products mega-dropdown; upgrade Admin Product Editor with full specifications, features, applications, and image gallery management; enforce "Authorized Dealers" for Blue Star and "Authorized Distributors" for Rockwell; fix quotation spelling; and deploy initial commit to GitHub (`origin main`).
+**Goal:** Fix the admin media dropzone bug where multiple dropped images were processed but only the last image was saved; build real-time two-way synchronization between deployed admin, localhost admin, and public storefronts using Supabase Postgres; add a left-side vertically aligned product detail media gallery supporting both images and video playback with hover and click switching; and implement Google Image Search SEO and dynamic canonical sitemap.
 
 ---
 
 ## Task Checklist
 
-- [x] **Official Brand Logo Integration:**
-  - Deployed user's uploaded official circular logo (`media_1790097502272.jpg`, stylized cyan/blue "TT", snowflake, wind arcs, and "Complete Cooling Solutions") to `apps/web/public/images/tanmayee-logo.png` and `apps/admin/public/images/tanmayee-logo.png`.
-  - Updated `COMPANY.LOGO_URL = '/images/tanmayee-logo.png'` and `COMPANY.SUB_TAGLINE = 'Complete Cooling Solutions'` in `@tanmayee/config`.
-  - Mounted animated circular logo badges with glowing rims in:
-    - Web Header (`apps/web/components/layout/header.tsx`)
-    - Web Footer (`apps/web/components/layout/footer.tsx`)
-    - Web Homepage Hero (`apps/web/app/page.tsx`)
-    - Web About Hero (`apps/web/app/about/page.tsx`)
-    - Web Quotatio Modal (`apps/web/components/cart/quote-modal.tsx`)
-    - Web Cart Page (`apps/web/app/cart/page.tsx`)
-    - Admin Sidebar (`apps/admin/components/layout/sidebar.tsx`)
-    - Admin Login Page (`apps/admin/app/login/page.tsx`)
-- [x] **Official Google Maps Deep-Link Integration:**
-  - Integrated canonical link: `https://maps.app.goo.gl/ndzjgar89V8CXgaC7` into `COMPANY.GOOGLE_MAPS_URL`.
-  - Linked top announcement banner in Web Header ("Madhurawada Showroom") directly to Google Maps.
-  - Linked Showroom Directions callout in Web Footer directly to Google Maps.
-  - Added interactive Showroom Experience Center card and Verified Reviews card on `/contact` with direct Google Maps navigation.
-  - Linked Showroom details on Homepage and Cart completion screen.
-- [x] **Alive & Interactive Animation Engine:**
-  - Global CSS Keyframes in `apps/web/app/globals.css`:
-    - `@keyframes fadeInUp` (smooth upward entrance)
-    - `@keyframes shimmer` (holographic skeleton light pass)
-    - `@keyframes popScale` (badge count bounce & confirmation checkmark burst)
-    - `@keyframes pulseGlow` (cyan outer ring glow)
-    - `@keyframes pulseGreenGlow` (WhatsApp dock button breathing)
-    - `@keyframes floatDock` (subtle vertical levitation on floating CTA dock)
-  - Interactive micro-classes: `.animate-fade-in-up`, `.animate-pop-scale`, `.animate-pulse-glow`, `.animate-pulse-green-glow`, `.animate-float-dock`, `.interactive-card`, `.skeleton-box`.
-- [x] **Lazy Loading & Component Skeleton Loaders:**
-  - Created `apps/web/components/ui/skeleton.tsx` (reusable shimmering skeleton block).
-  - Created `apps/web/components/product/product-card-skeleton.tsx` (`ProductCardSkeleton` & `ProductGridSkeleton` matching exact product card dimensions).
-  - Enhanced `ProductCard` with native `loading="lazy"` on product images, smooth blur-to-focus opacity transition upon `onLoad`, and interactive hover scale.
-- [x] **Add to Quotatio Interactive Feedback:**
-  - Clicking "Add to Quotatio" triggers instant button state transition (check icon + green glow).
-  - Floating confirmation toast appears in the bottom right corner with direct "View Quotatio →" button.
-  - Header cart counter and floating dock badge trigger `.animate-pop-scale` bounce.
-- [x] **Catalog Search & Filtering Animations:**
-  - Staggered entry transitions for product cards (`animationDelay = Math.min(index, 9) * 40ms`).
-  - Animated empty-search state with glowing filter reset CTA.
-- [x] **Multi-Stage "Sending Quota" Processing Flow:**
-  - Replaced static loading spinner on both Quote Modal (`quote-modal.tsx`) and Cart Page (`cart/page.tsx`) with a 4-stage animated sequence:
-    1. *Verifying Equipment Availability & Factory Stock...* (25%)
-    2. *Calculating B2B Volume & Dealer Discounts...* (60%)
-    3. *Compiling Official Stamped Quotatio...* (85%)
-    4. *Connecting to Sales Desk & WhatsApp Link...* (100%)
-  - Animated progress bar and active stage indicator pills.
-  - Followed by celebration screen with unique reference number, priority stock badge, and direct WhatsApp launch button.
+- [x] **Multi-Image Drag-and-Drop Batch Upload Bug Fix:**
+  - Resolved the React state closure bug in `apps/admin/components/media/media-manager.tsx`.
+  - Maintained a local running array `accumulatedGallery = [...galleryUrls]` inside `processFiles()`.
+  - Multiple dropped files (e.g. 5 images or videos) now sequentially upload to Supabase Storage bucket `product-media` and accumulate without discarding earlier uploads.
+- [x] **Live Two-Way Database Synchronization Engine:**
+  - Enforced Supabase client initialization in `packages/database/src/index.ts` with reliable default project configuration.
+  - Implemented `fetchLiveProductsFromSupabase()` in `packages/database/src/product-storage.ts`, querying Supabase `products`, `product_media`, and `product_attributes`, normalizing them to `Product`, and merging with seed products.
+  - Rewrote `saveCustomProduct()` in `packages/database/src/product-storage.ts` to perform atomic upserts to Supabase `products`, replace rows in `product_media` with valid database constraint types (`'MAIN_IMAGE'`, `'GALLERY'`, `'VIDEO'`), and upsert `product_attributes`.
+  - Updated API route endpoints:
+    - `apps/admin/app/api/products/route.ts`: Queries live Supabase with fallback.
+    - `apps/web/app/api/products/route.ts`: Queries live Supabase with fallback.
+  - Updated Admin pages:
+    - `apps/admin/app/products/page.tsx`: Fetches live products and handles deletions via API.
+    - `apps/admin/app/products/[id]/edit/page.tsx`: Fetches live product by ID/slug.
+    - `apps/admin/components/product/product-form.tsx`: Formats media using valid Postgres enum types.
+  - Updated Web Storefront:
+    - `apps/web/app/products/page.tsx`: Added live client-side Supabase sync state.
+    - `apps/web/app/categories/[slug]/page.tsx`: Fetches live products from Supabase with resilient category/parent grouping.
+- [x] **Product Detail Left-Side Vertical Thumbnail Gallery & Video Player:**
+  - Upgraded `apps/web/app/products/[slug]/product-detail-client.tsx`:
+    - Created unified `mediaList` aggregating primary image, gallery images, and video assets.
+    - Added left-side vertical column on desktop (`md:flex-col md:w-20 md:max-h-[480px] overflow-y-auto`).
+    - Added both `onMouseEnter` and `onClick` handlers to seamlessly switch preview image/video.
+    - Added dynamic video player (`<video controls autoPlay muted playsInline>`) rendering when active media is a video.
+    - Added rich descriptive `alt` and `title` tags on all showcase assets for Google Image indexing.
+- [x] **Google Image Search SEO & Dynamic Canonical Sitemap:**
+  - Injected OpenGraph image arrays and `schema.org/Product` + `ImageObject` JSON-LD rich snippets in `apps/web/app/products/[slug]/page.tsx`.
+  - Configured canonical base URL `https://www.tanmayeetechnologies.com` in `apps/web/app/layout.tsx`.
+  - Upgraded `apps/web/app/sitemap.ts` to async fetch all live Supabase products, all category aliases, and commercial service landing routes.
 - [x] **Verification & Health Check:**
-  - `npm --prefix apps/web run typecheck` passed (exit code 0).
-  - `npm --prefix apps/admin run typecheck` passed (exit code 0).
-  - Dev server HTTP 200 confirmed on all routes: `/`, `/products`, `/cart`, `/contact`, `/login`.
-
----
-
-## Task Checklist
-
-- [x] **Rockwell Image Audit & Fix:**
-  - Audited all 97 Rockwell products in catalog.
-  - Eliminated green freezer images (`GFR...`) from Combi Freezers, Blast Freezers, Upright Freezers, Eutectic Freezers, and Hard Top Freezers.
-  - Assigned genuine manufacturer photography via Shopify CDN assets (`COMBI400A1.png`, `Group34127_6.png`, `Group34126_4.png`, `Group34126_3.png`, `SFR250.png`, `SFRN550DD1_2.png`).
-  - Automated verification script confirms 0 non-green-freezers have green freezer images.
-- [x] **Product Card & Detail Interactivity:**
-  - Added "View Details" button on product cards linking directly to `/products/[slug]`.
-  - Added "Share" button on both product cards and product detail page utilizing Web Share API (`navigator.share`) with instant clipboard copy fallback toast.
-- [x] **Quotation Button Renaming:**
-  - Renamed quotation buttons across Storefront (`apps/web`) to `"Quotatio"` / `"Generate Official Quotatio"`.
-  - Updated Header, Cart Drawer, Cart Page, Quote Modal, Product Cards, and Detail pages.
-- [x] **Vibrant UI & Technical Specifications Icons:**
-  - Added colored badges with Lucide icons (`Snowflake`, `Zap`, `ShieldCheck`, `Scale`, `Maximize2`, `Thermometer`, `Volume2`, `Layers`, `Power`).
-  - Added visually distinctive Technical Specifications matrix and Key Performance Features cards.
-- [x] **Floating Vertical Right-Corner CTAs Dock:**
-  - Created animated floating vertical dock on desktop & mobile: Call (`tel:09390115553`), WhatsApp, Quotatio cart drawer trigger with item badge, and smooth Scroll-to-Top (visible after 280px scroll).
-- [x] **Robust SEO & Enriched Buyer Content:**
-  - Injected `schema.org/Product` JSON-LD rich snippets into `apps/web/app/products/[slug]/page.tsx`.
-  - Added deep buyer decision sections: Target Applications & Use Cases, Engineering Performance, Heavy-Duty Build Qualities, and Tanmayee Authorized Advantage.
-- [x] **Elimination of Mock Data in Admin Portal:**
-  - Replaced all Pune/mid-state records with authentic Visakhapatnam & Andhra Pradesh commercial clients (Kulkarni Port Logistics Gajuwaka, Coastal Flavours Siripuram, Sri Krishna Cold Storage Anandapuram, Apex Grand Hotel Beach Road, Apollo Health City Arilova, Fresh Delight PM Palem).
-  - Made product counts and category metrics dynamic across all admin pages based on the 155-product catalog.
-- [x] **Offers & Promotions Admin Studio:**
-  - Built comprehensive Offers Management Studio at `/offers` in `apps/admin`.
-  - Full CRUD: Create new offer, Edit rule, Delete offer, and Toggle Active/Inactive status.
-  - Permanent offers vs Time-limited offers with start and end date pickers.
-  - Granular parameters: Discount type (Percentage vs Flat INR), discount value, minimum/maximum quantity brackets, minimum order value, and scope filters (All Products, Rockwell Only, Blue Star Only, Freezers Only, etc.).
-- [x] **Build & Route Verification:**
-  - `npm --prefix apps/admin run build` passed with exit code 0 (16/16 routes).
-  - `npm --prefix apps/web run build` passed with exit code 0 (14/14 routes).
-  - Verified live dev server responses on all endpoints (HTTP 200).
+  - Turbo typecheck executed across all packages: `@tanmayee/admin`, `@tanmayee/web`, `@tanmayee/api`, `@tanmayee/config`: **4/4 passed (exit code 0)**.

@@ -6,7 +6,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { SEED_CATEGORIES, getMergedProducts, findCategory } from '@tanmayee/database';
+import { SEED_CATEGORIES, fetchLiveProductsFromSupabase, findCategory } from '@tanmayee/database';
 import { CategoryClient } from './category-client';
 
 interface PageProps {
@@ -68,8 +68,9 @@ export default async function CategoryPage({ params }: PageProps) {
   }
 
   const subcategories = SEED_CATEGORIES.filter((c) => c.parent_id === category.id);
+  const allProducts = await fetchLiveProductsFromSupabase();
 
-  let initialProducts = getMergedProducts().filter((p) => {
+  let initialProducts = allProducts.filter((p) => {
     const catSlug = category.slug;
     const catNameLower = p.category_name.toLowerCase();
     const prodNameLower = p.product_name.toLowerCase();
@@ -166,8 +167,8 @@ export default async function CategoryPage({ params }: PageProps) {
 
   // Fallback if strict filter yields 0: match by category name or parent
   if (initialProducts.length === 0) {
-    initialProducts = getMergedProducts().filter(
-      (p) =>
+    initialProducts = allProducts.filter(
+      (p: any) =>
         p.category_id === category.id ||
         (category.parent_id && p.category_id === category.parent_id) ||
         p.product_name.toLowerCase().includes(category.name.toLowerCase().split(' ')[0])

@@ -1,13 +1,21 @@
 import { NextResponse } from 'next/server';
-import { getMergedProducts } from '@tanmayee/database';
+import { fetchLiveProductsFromSupabase } from '@tanmayee/database';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const products = getMergedProducts();
+    const products = await fetchLiveProductsFromSupabase();
     return NextResponse.json({
       success: true,
+      products,
       data: products,
-      count: products.length,
+      pagination: {
+        page: 1,
+        limit: products.length,
+        total: products.length,
+        totalPages: 1,
+      },
     });
   } catch (err: any) {
     return NextResponse.json(

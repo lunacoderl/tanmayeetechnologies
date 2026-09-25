@@ -138,9 +138,12 @@ export function MediaManager({
     }
   };
 
-  // ── Process Uploads to Supabase ─────────────────────────────────────
+  // ── Process Uploads to Supabase (Sequential Multi-Drop Safe) ───────
   const processFiles = async (files: File[]) => {
     setIsUploading(true);
+    let currentPrimary = primaryImageUrl;
+    let accumulatedGallery = [...galleryUrls];
+
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       setUploadProgressText(`Uploading ${file.name} (${i + 1}/${files.length}) to Supabase...`);
@@ -156,19 +159,24 @@ export function MediaManager({
 
         const data = await res.json();
         if (data.success && data.url) {
-          if (!primaryImageUrl && i === 0 && data.mediaType === 'image') {
+          if (!currentPrimary && accumulatedGallery.length === 0 && data.mediaType === 'image') {
+            currentPrimary = data.url;
             onPrimaryImageChange(data.url);
           } else {
-            onGalleryUrlsChange([...galleryUrls, data.url]);
+            accumulatedGallery.push(data.url);
+            onGalleryUrlsChange([...accumulatedGallery]);
           }
         } else {
-          alert(`Upload error: ${data.error || 'Failed to upload to Supabase'}`);
+          alert(`Upload error for ${file.name}: ${data.error || 'Failed to upload to Supabase'}`);
         }
       } catch (err: any) {
         console.error('File upload error:', err);
         alert(`Failed to upload ${file.name}: ${err.message}`);
       }
     }
+
+    // Ensure complete array of all dropped files is persisted to form state
+    onGalleryUrlsChange([...accumulatedGallery]);
     setIsUploading(false);
     setUploadProgressText('');
   };

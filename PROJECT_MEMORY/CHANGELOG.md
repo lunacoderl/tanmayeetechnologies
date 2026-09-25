@@ -235,3 +235,63 @@ All notable changes and technical implementation milestones are documented in th
   - Replaced sequential 155-row query loop in `scripts/import-extracted-catalog.js` with a single table health probe, reducing import run times from minutes to under 3 seconds.
 - **Shopify Storefront Integration**:
   - Discovered and connected directly to active Shopify storefront APIs on `https://www.rockwell.co.in` and `https://consumer.bluestarindia.com`.
+
+---
+
+## [2026-09-25 18:35]
+
+### Task
+Fix admin multi-image drag-and-drop bug where only the last dropped image was saved; build live two-way database synchronization between deployed admin, localhost admin, and public storefronts; add product detail left-side vertical scrollable thumbnail gallery supporting both images and video playback with hover and click switching; and upgrade Google Image Search SEO and canonical XML sitemap.
+
+### Result
+1. Fixed multi-image drag-and-drop batch upload stale closure bug in `apps/admin/components/media/media-manager.tsx`. Dropping multiple images (e.g. 5 images) now uploads and preserves every image sequentially into Supabase Storage and form state.
+2. Built Supabase live two-way sync engine in `packages/database/src/product-storage.ts` (`fetchLiveProductsFromSupabase` and `saveCustomProduct`), with resilient service-role and anon client configurations in `packages/database/src/index.ts`. Admin modifications, new products, and image updates now persist directly into Supabase Postgres tables (`products`, `product_media`, `product_attributes`) and instantly reflect across localhost and production deployments.
+3. Upgraded product detail page (`apps/web/app/products/[slug]/product-detail-client.tsx`) with a left-side vertical thumbnail strip on desktop with hover (`onMouseEnter`) and click switching, full-fidelity HTML5 video playback with controls, and rich SEO `alt` and `title` tags on all showcase assets.
+4. Upgraded Google Image Search SEO in `apps/web/app/products/[slug]/page.tsx` with dynamic OpenGraph multi-image arrays and `schema.org/Product` + `ImageObject` JSON-LD rich snippets.
+5. Upgraded `apps/web/app/sitemap.ts` to async fetch all live Supabase products, all category aliases, and commercial service landing routes using canonical `https://www.tanmayeetechnologies.com`.
+
+### Files Modified
+- `apps/admin/components/media/media-manager.tsx` — fixed React stale closure bug in `processFiles` by maintaining local `accumulatedGallery` array.
+- `packages/database/src/index.ts` — configured robust default credentials for `getSupabaseAdmin` and `getSupabasePublic`.
+- `packages/database/src/product-storage.ts` — implemented `fetchLiveProductsFromSupabase()` and upgraded `saveCustomProduct()` to upsert to Supabase `products`, `product_media` (using valid database constraint types `'MAIN_IMAGE'`, `'GALLERY'`, `'VIDEO'`), and `product_attributes`.
+- `apps/admin/app/api/products/route.ts` — query live Supabase database with seed fallback.
+- `apps/admin/app/products/page.tsx` — fetch live products on load and delete via API.
+- `apps/admin/app/products/[id]/edit/page.tsx` — fetch live product by ID/slug from Supabase.
+- `apps/admin/components/product/product-form.tsx` — format media payload using exact Postgres check constraint types.
+- `apps/web/app/api/products/route.ts` — query live Supabase database with seed fallback.
+- `apps/web/app/products/page.tsx` — added live client-side Supabase sync state to complement server render.
+- `apps/web/app/categories/[slug]/page.tsx` — fetch live products from Supabase with resilient category/parent grouping.
+- `apps/web/app/products/[slug]/product-detail-client.tsx` — left-side vertical thumbnail column, hover/click preview switcher, video player, and canonical www share URL.
+- `apps/web/app/products/[slug]/page.tsx` — live Supabase fetch, multi-image OpenGraph, and `ImageObject` structured schema.
+- `apps/web/app/layout.tsx` — canonical `https://www.tanmayeetechnologies.com` domain.
+- `apps/web/app/sitemap.ts` — dynamic async sitemap with live Supabase products, categories, and service routes.
+- `PROJECT_MEMORY/BUGS_AND_FIXES.md` — recorded BUG-008 and BUG-009.
+- `PROJECT_MEMORY/DECISIONS.md` — recorded DEC-004.
+
+### Code Changes
+- `apps/admin/components/media/media-manager.tsx`:
+  - Replaced stale `onGalleryUrlsChange([...galleryUrls, data.url])` inside `for (const file of fileList)` loop with `let accumulatedGallery = [...galleryUrls]; ... accumulatedGallery.push(data.url); onGalleryUrlsChange([...accumulatedGallery]);`.
+- `packages/database/src/product-storage.ts`:
+  - Added `fetchLiveProductsFromSupabase()`: selects from `products` joining `product_media` and `product_attributes`, normalizes attributes and media, and merges with `SEED_PRODUCTS`.
+  - Added `saveCustomProduct()`: upserts to Supabase `products`, replaces `product_media` records, and upserts `product_attributes`.
+- `apps/web/app/products/[slug]/product-detail-client.tsx`:
+  - Formed unified `mediaList` containing primary image, gallery images, and videos.
+  - Rendered left-side vertical column on desktop (`md:flex-col md:w-20 md:max-h-[480px] overflow-y-auto`).
+  - Added `onMouseEnter` and `onClick` handlers for fast image switching.
+  - Added HTML5 `<video controls autoPlay muted playsInline>` component for video media.
+
+### Database Changes
+- Enforced strict adherence to Postgres check constraint `product_media_type_check` on table `product_media`: `('MAIN_IMAGE', 'GALLERY', 'VIDEO', 'BROCHURE', 'MANUAL', 'SPECIFICATION')`.
+- All media uploads from admin now correctly tagged with `'MAIN_IMAGE'`, `'GALLERY'`, or `'VIDEO'`.
+
+### UI Changes
+- Admin Media Dropzone: Multi-file drop processes and accumulates all dropped files without wiping earlier uploads.
+- Storefront Product Detail: Vertical left thumbnail column with smooth hover and click switching, active thumbnail cyan rim glow, and interactive video playback.
+
+### Bugs Fixed
+- **BUG-008**: Admin multi-image drag-and-drop batch upload only saving the last image.
+- **BUG-009**: Products and media added in admin not synchronizing across localhost, deployed admin, and storefronts.
+
+### Next Step
+Verify all packages pass typecheck and push changes to GitHub.
+

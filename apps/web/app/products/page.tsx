@@ -45,9 +45,32 @@ export default function ProductsPage() {
     }
   }, [selectedCategory, trackCategoryClick]);
 
+  const [productList, setProductList] = useState(getMergedProducts());
+
+  React.useEffect(() => {
+    let isMounted = true;
+    async function loadLiveProducts() {
+      try {
+        const res = await fetch('/api/products');
+        if (res.ok) {
+          const json = await res.json();
+          if (isMounted && json.products && Array.isArray(json.products) && json.products.length > 0) {
+            setProductList(json.products);
+          }
+        }
+      } catch (e) {
+        // Fall back to local products
+      }
+    }
+    loadLiveProducts();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   // Filter products
   const filteredProducts = useMemo(() => {
-    let result = [...getMergedProducts()];
+    let result = [...productList];
 
     // Search query
     if (searchQuery.trim()) {

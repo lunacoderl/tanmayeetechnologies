@@ -23,22 +23,47 @@ export default function EditProductPage({ params }: EditProductPageProps) {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    try {
-      if (typeof window !== 'undefined') {
-        const stored = localStorage.getItem('tanmayee_custom_products');
-        if (stored) {
-          const list = JSON.parse(stored);
-          const found = list.find((p: any) => p.id === id || p.slug === id);
-          if (found) {
-            setProduct(found);
+    let isMounted = true;
+    async function loadLiveProduct() {
+      try {
+        const res = await fetch('/api/products');
+        if (res.ok) {
+          const json = await res.json();
+          if (json.products && Array.isArray(json.products)) {
+            const found = json.products.find((p: any) => p.id === id || p.slug === id);
+            if (found && isMounted) {
+              setProduct(found);
+              setIsLoaded(true);
+              return;
+            }
           }
         }
+      } catch (err) {
+        console.warn('Could not fetch live product from API:', err);
       }
-    } catch (e) {
-      console.error('Failed to load custom product from localStorage', e);
-    } finally {
-      setIsLoaded(true);
+
+      try {
+        if (typeof window !== 'undefined') {
+          const stored = localStorage.getItem('tanmayee_custom_products');
+          if (stored) {
+            const list = JSON.parse(stored);
+            const found = list.find((p: any) => p.id === id || p.slug === id);
+            if (found && isMounted) {
+              setProduct(found);
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Failed to load custom product from localStorage', e);
+      } finally {
+        if (isMounted) setIsLoaded(true);
+      }
     }
+
+    loadLiveProduct();
+    return () => {
+      isMounted = false;
+    };
   }, [id]);
 
   if (!product) {

@@ -1,8 +1,8 @@
 # Project State: Tanmayee Technologies Platform
 
-**Last Updated:** 2026-09-22 23:15 IST  
-**Status:** **Completed & Verified** — Rockwell Images Audited & Corrected, Floating Vertical CTAs Active, Quotatio Renamed, Vibrant UI & Spec Icons, Robust SEO Schema, Admin Offers Studio Full CRUD, Mock Data Completely Eliminated  
-**Environment:** Local Development + Apify Cloud Integration (Actor ID: `IQiZE0gndS4uaVfUp`)
+**Last Updated:** 2026-09-25 18:35 IST  
+**Status:** **Completed & Verified** — Multi-Image Drag-and-Drop Batch Upload, Live Supabase Two-Way Sync Engine, Product Detail Vertical Gallery with Video Player, Google Image SEO Schema, Dynamic Canonical Sitemap  
+**Environment:** Local Development + Supabase Postgres Integration + Apify Cloud Integration (Actor ID: `IQiZE0gndS4uaVfUp`)
 
 ---
 
@@ -46,7 +46,8 @@ The platform consists of:
 
 | Service / Component | Status | Port / Target | Details |
 | :--- | :--- | :--- | :--- |
-| Storefront (`apps/web`) | **Active** | `http://localhost:3000` | HTTP 200, serving 155 products with vibrant UI, floating CTAs, Quotatio & Share |
-| Admin Portal (`apps/admin`) | **Active** | `http://localhost:3001` | HTTP 200, zero mock data, full CRUD Offers Studio at `/offers` |
+| Storefront (`apps/web`) | **Active** | `http://localhost:3000` | HTTP 200, live Supabase sync, left vertical media gallery with hover/click & video, Image SEO schema, canonical sitemap |
+| Admin Portal (`apps/admin`) | **Active** | `http://localhost:3001` | HTTP 200, zero mock data, multi-image batch dropzone upload, live Supabase product & media persistence |
 | Apify Actor | **Deployed & Ready** | Apify Cloud ID `IQiZE0gndS4uaVfUp` | Token configured, build succeeded |
-| Database (`packages/database`) | **Synchronized** | Local fallback + Supabase ready | 155 items with verified unique IDs & commercial offers |
+| Database (`packages/database`) | **Synchronized** | Supabase Postgres + Local fallback | Live bidirectional sync for products, `product_media`, `product_attributes`, and commercial offers |
+

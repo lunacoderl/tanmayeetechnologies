@@ -84,4 +84,28 @@
 - **Fix:** Added `openCart`, `closeCart`, and `totalItems` aliases to `CartContextType` and `CartProvider` in `apps/web/lib/cart-context.tsx`. Production build succeeded with exit code 0.
 - **Status:** **RESOLVED**
 
+---
+
+## BUG-008: Admin Multi-Image Drag-and-Drop Processing All Files but Only Saving the Last Image
+- **Error:** When an admin drags and drops multiple images (e.g., 5 images) at once into the media dropzone, all files appear to process sequentially, but only the final image is retained in the gallery.
+- **Root Cause:** In `apps/admin/components/media/media-manager.tsx`, `processFiles()` was iterating through dropped files with `for (const file of fileList) { ... onGalleryUrlsChange([...galleryUrls, data.url]) }`. Because `galleryUrls` was closed over from the component render scope rather than accumulating locally, each async iteration was executing with the initial state `galleryUrls`, overwriting previous iterations and saving only `[...initialGallery, lastUploadedUrl]`.
+- **Fix:** Refactored `processFiles()` to maintain a local `accumulatedGallery = [...galleryUrls]` array outside the loop. In each iteration, `accumulatedGallery.push(data.url)` is called and passed to `onGalleryUrlsChange([...accumulatedGallery])`. All dropped images and videos are preserved and saved.
+- **Status:** **RESOLVED**
+
+---
+
+## BUG-009: Products and Media Added in Admin Not Synchronizing Across Localhost, Deployed Admin, and Storefronts
+- **Error:** Custom products, updated images, and edits made in the deployed admin were not visible in localhost admin, edits in localhost admin were not visible in deployed admin, and neither updated the public storefront (`apps/web`).
+- **Root Cause:**
+  1. The application was reading exclusively from static seed arrays (`SEED_PRODUCTS`) and in-memory caches.
+  2. `saveCustomProduct()` in `packages/database/src/product-storage.ts` only saved to local memory and had incomplete Supabase persistence logic that failed to upsert to the `products` table if the slug didn't pre-exist.
+  3. Additional gallery images and video media were not inserted into `product_media`.
+  4. Storefront routes were not fetching live products from Supabase.
+- **Fix:**
+  1. Implemented `fetchLiveProductsFromSupabase()` in `packages/database/src/product-storage.ts`, querying Supabase `products`, `product_media`, and `product_attributes`, normalizing them to `Product`, and merging with seed products.
+  2. Rewrote `saveCustomProduct()` to upsert products into Supabase `products`, replace rows in `product_media` (using valid constraint types `'MAIN_IMAGE'`, `'GALLERY'`, `'VIDEO'`), and upsert `product_attributes`.
+  3. Connected both `/api/products` (admin and web), admin edit pages, and storefront catalog and category pages to `fetchLiveProductsFromSupabase()`.
+- **Status:** **RESOLVED**
+
+
 

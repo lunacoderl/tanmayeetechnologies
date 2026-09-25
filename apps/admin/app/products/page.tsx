@@ -26,30 +26,52 @@ export default function AdminProductsPage() {
   const [selectedVersionProduct, setSelectedVersionProduct] = useState<any>(null);
 
   useEffect(() => {
-    try {
-      if (typeof window !== 'undefined') {
-        const stored = localStorage.getItem('tanmayee_custom_products');
-        if (stored) {
-          const custom = JSON.parse(stored);
-          if (Array.isArray(custom) && custom.length > 0) {
-            setProducts((prev) => {
-              const copy = [...prev];
-              custom.forEach((cp: any) => {
-                const idx = copy.findIndex((p) => p.id === cp.id);
-                if (idx >= 0) {
-                  copy[idx] = { ...copy[idx], ...cp };
-                } else {
-                  copy.unshift(cp);
-                }
-              });
-              return copy;
-            });
+    let isMounted = true;
+    async function loadLiveProducts() {
+      try {
+        const res = await fetch('/api/products');
+        if (res.ok) {
+          const json = await res.json();
+          if (isMounted && json.products && Array.isArray(json.products) && json.products.length > 0) {
+            setProducts(json.products);
+            return;
           }
         }
+      } catch (err) {
+        console.warn('Live products fetch notice:', err);
       }
-    } catch (e) {
-      console.error('Failed to load custom products in admin', e);
+
+      // Local fallback
+      try {
+        if (typeof window !== 'undefined') {
+          const stored = localStorage.getItem('tanmayee_custom_products');
+          if (stored) {
+            const custom = JSON.parse(stored);
+            if (isMounted && Array.isArray(custom) && custom.length > 0) {
+              setProducts((prev) => {
+                const copy = [...prev];
+                custom.forEach((cp: any) => {
+                  const idx = copy.findIndex((p) => p.id === cp.id || p.slug === cp.slug);
+                  if (idx >= 0) {
+                    copy[idx] = { ...copy[idx], ...cp };
+                  } else {
+                    copy.unshift(cp);
+                  }
+                });
+                return copy;
+              });
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Failed to load custom products in admin', e);
+      }
     }
+
+    loadLiveProducts();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const filteredList = useMemo(() => {

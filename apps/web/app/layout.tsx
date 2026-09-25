@@ -76,7 +76,7 @@ export const metadata: Metadata = {
     title: 'Tanmayee Technologies — Commercial ACs & Refrigeration',
     description:
       'Official Blue Star & Rockwell commercial cooling equipment distributors. B2B wholesale quotations, volume discounts, turnkey installation, and certified AMC maintenance.',
-    url: 'https://tanmayeetechnologies.com',
+    url: 'https://www.tanmayeetechnologies.com',
     siteName: 'Tanmayee Technologies',
     images: [
       {

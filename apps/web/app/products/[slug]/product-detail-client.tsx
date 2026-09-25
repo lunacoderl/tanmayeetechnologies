@@ -5,7 +5,7 @@
 // Complete B2B specs, rich icons, share features, and buyer decision sections
 // ============================================================================
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import {
   FileText,
@@ -38,6 +38,7 @@ import {
   HeartHandshake,
   CheckCheck,
   Heart,
+  Play,
 } from 'lucide-react';
 import { Product } from '@tanmayee/types';
 import { COMPANY } from '@tanmayee/config';
@@ -90,11 +91,65 @@ export function ProductDetailClient({
   const brandName = brand?.name || product.brand_name || 'Manufacturer';
   const isBlueStar = brandName.toLowerCase().includes('blue star');
 
-  const imageUrl =
-    product.media?.[0]?.url ||
-    (isBlueStar
-      ? 'https://cdn.shopify.com/s/files/1/0888/8297/0937/files/ic518vnurav_gallery-images-01_2_4.png'
-      : 'https://cdn.shopify.com/s/files/1/0701/1929/3028/files/SFR250.png?v=1763989056');
+  const isVideoUrl = (u: string) =>
+    /\.(mp4|webm|mov|ogg)($|\?)/i.test(u) || u.includes('youtube.com') || u.includes('youtu.be') || u.includes('vimeo.com');
+
+  const defaultFallbackImage = isBlueStar
+    ? 'https://cdn.shopify.com/s/files/1/0888/8297/0937/files/ic518vnurav_gallery-images-01_2_4.png'
+    : 'https://cdn.shopify.com/s/files/1/0701/1929/3028/files/SFR250.png?v=1763989056';
+
+  const mediaList = useMemo(() => {
+    const list: Array<{ url: string; type: 'IMAGE' | 'VIDEO'; alt: string; title: string }> = [];
+    const seen = new Set<string>();
+
+    const addMedia = (url: string, type?: string, alt?: string, title?: string) => {
+      if (!url || seen.has(url)) return;
+      seen.add(url);
+      const isVid = type === 'VIDEO' || isVideoUrl(url);
+      list.push({
+        url,
+        type: isVid ? 'VIDEO' : 'IMAGE',
+        alt: alt || `${product.product_name} - ${brandName} Model ${product.model_number || ''} Commercial View ${list.length + 1}`,
+        title: title || `${product.product_name} View ${list.length + 1}`,
+      });
+    };
+
+    // Primary image first
+    const primaryImg = (product as any).primary_image_url;
+    if (primaryImg) {
+      addMedia(
+        primaryImg,
+        isVideoUrl(primaryImg) ? 'VIDEO' : 'IMAGE',
+        `${product.product_name} - Authorized ${brandName} Partner Visakhapatnam`,
+        `${product.product_name} Main Showcase`
+      );
+    }
+
+    // Media array from DB/payload
+    if (Array.isArray(product.media) && product.media.length > 0) {
+      product.media.forEach((m: any, idx: number) => {
+        const u = typeof m === 'string' ? m : m.url;
+        const t = typeof m === 'object' ? m.type : undefined;
+        const a = typeof m === 'object' ? m.alt || m.alt_text : undefined;
+        addMedia(u, t, a);
+      });
+    }
+
+    // Gallery URLs array
+    if (Array.isArray((product as any).gallery_urls) && (product as any).gallery_urls.length > 0) {
+      (product as any).gallery_urls.forEach((u: string) => addMedia(u));
+    }
+
+    if (list.length === 0) {
+      addMedia(defaultFallbackImage, 'IMAGE', `${product.product_name} - ${brandName}`, `${product.product_name} Product Photo`);
+    }
+
+    return list;
+  }, [product, isBlueStar, brandName]);
+
+  const [activeMediaIndex, setActiveMediaIndex] = useState(0);
+  const activeMedia = mediaList[activeMediaIndex] || mediaList[0];
+  const imageUrl = activeMedia?.url || defaultFallbackImage;
 
   // Key spec highlights
   const capacityAttr = product.attributes?.find((a) =>
@@ -123,7 +178,7 @@ export function ProductDetailClient({
   )}`;
 
   const handleShare = async () => {
-    const shareUrl = typeof window !== 'undefined' ? window.location.href : `https://tanmayeetechnologies.com/products/${product.slug}`;
+    const shareUrl = typeof window !== 'undefined' ? window.location.href : `https://www.tanmayeetechnologies.com/products/${product.slug}`;
     const shareData = {
       title: product.product_name,
       text: `${product.product_name} (Model: ${product.model_number || ''}) from Tanmayee Technologies — Authorized Partner in Visakhapatnam.`,
@@ -200,64 +255,127 @@ export function ProductDetailClient({
 
       {/* Main Product Hero Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-        {/* Left: Product Image & Badges */}
+        {/* Left: Product Media Gallery (Vertical Thumbnails on Left + Showcase on Right) */}
         <div className="space-y-4">
-          <div className="relative aspect-[4/3] bg-gradient-to-b from-slate-50 to-slate-200/70 rounded-3xl border border-slate-200/90 overflow-hidden shadow-lg group">
-            <img
-              src={imageUrl}
-              alt={product.product_name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            />
-            {/* Top Badges */}
-            <div className="absolute top-4 left-4 flex items-center gap-2 z-10">
-              <span
-                className={`text-xs font-extrabold px-3.5 py-1.5 rounded-full uppercase tracking-wider shadow-md text-white ${
-                  isBlueStar
-                    ? 'bg-gradient-to-r from-blue-600 to-cyan-600'
-                    : 'bg-gradient-to-r from-emerald-600 to-teal-600'
-                }`}
-              >
-                {brandName}
-              </span>
-            </div>
-
-            {/* Quick Share Button & Notification */}
-            <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
-              <button
-                type="button"
-                onClick={handleShare}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/95 hover:bg-white text-slate-700 hover:text-cyan-600 text-xs font-bold shadow-lg backdrop-blur-md transition-all hover:scale-105 active:scale-95 border border-slate-200"
-                title="Share this product via WhatsApp, Bluetooth, Social Media or Copy Link"
-                aria-label="Share product"
-              >
-                {copied ? (
-                  <>
-                    <Check className="w-3.5 h-3.5 text-emerald-600" />
-                    <span className="text-emerald-700 font-extrabold">Copied!</span>
-                  </>
-                ) : (
-                  <>
-                    <Share2 className="w-3.5 h-3.5" />
-                    <span>Share</span>
-                  </>
-                )}
-              </button>
-            </div>
-
-            {/* Bottom Capacity & Exact Model Number Pill */}
-            {(capacityAttr || product.model_number) && (
-              <div className="absolute bottom-4 left-4 right-4 flex items-center z-10 pointer-events-none">
-                <span className="inline-flex items-center gap-2 bg-slate-950/90 backdrop-blur-md text-white text-xs font-bold px-3.5 py-2 rounded-2xl border border-white/20 shadow-xl">
-                  {capacityAttr && (
-                    <span className="text-cyan-300 font-black">{capacityAttr.value}</span>
-                  )}
-                  {capacityAttr && product.model_number && <span className="text-slate-400 font-normal">•</span>}
-                  {product.model_number && (
-                    <span className="text-slate-200 font-mono font-bold tracking-wide">{product.model_number}</span>
-                  )}
-                </span>
+          <div className="flex flex-col-reverse md:flex-row gap-3.5 items-start">
+            {/* Left Side: Vertically Aligned Thumbnails List */}
+            {mediaList.length > 1 && (
+              <div className="flex md:flex-col gap-2.5 overflow-x-auto md:overflow-y-auto md:max-h-[480px] w-full md:w-20 shrink-0 p-1 scrollbar-thin">
+                {mediaList.map((item, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setActiveMediaIndex(idx)}
+                    onMouseEnter={() => setActiveMediaIndex(idx)}
+                    className={`relative w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden border-2 transition-all duration-200 shrink-0 group ${
+                      activeMediaIndex === idx
+                        ? 'border-cyan-500 shadow-md ring-2 ring-cyan-400/40 scale-105 bg-white'
+                        : 'border-slate-200/90 hover:border-slate-400 opacity-75 hover:opacity-100 hover:scale-102 bg-white'
+                    }`}
+                    title={item.title}
+                    aria-label={`View ${product.product_name} image ${idx + 1}`}
+                  >
+                    {item.type === 'VIDEO' ? (
+                      <div className="w-full h-full bg-slate-900 flex flex-col items-center justify-center text-white">
+                        <Play className="w-5 h-5 fill-white text-white opacity-90 group-hover:scale-110 transition-transform" />
+                        <span className="text-[8px] font-bold mt-0.5 tracking-wider uppercase text-cyan-300">Video</span>
+                      </div>
+                    ) : (
+                      <img
+                        src={item.url}
+                        alt={item.alt}
+                        title={item.title}
+                        className="w-full h-full object-contain p-1"
+                        loading="lazy"
+                      />
+                    )}
+                    {activeMediaIndex === idx && (
+                      <span className="absolute bottom-1 right-1 w-2.5 h-2.5 rounded-full bg-cyan-500 ring-2 ring-white shadow" />
+                    )}
+                  </button>
+                ))}
               </div>
             )}
+
+            {/* Showcase Box: Large Active Image or Video Player */}
+            <div className="flex-1 w-full">
+              <div className="relative aspect-[4/3] bg-gradient-to-b from-slate-50 to-slate-200/70 rounded-3xl border border-slate-200/90 overflow-hidden shadow-lg group">
+                {activeMedia.type === 'VIDEO' ? (
+                  <video
+                    src={activeMedia.url}
+                    controls
+                    autoPlay
+                    muted
+                    playsInline
+                    className="w-full h-full object-contain bg-slate-950"
+                  />
+                ) : (
+                  <img
+                    src={activeMedia.url}
+                    alt={activeMedia.alt}
+                    title={activeMedia.title}
+                    className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500"
+                    loading="eager"
+                  />
+                )}
+
+                {/* Top Badges */}
+                <div className="absolute top-4 left-4 flex items-center gap-2 z-10">
+                  <span
+                    className={`text-xs font-extrabold px-3.5 py-1.5 rounded-full uppercase tracking-wider shadow-md text-white ${
+                      isBlueStar
+                        ? 'bg-gradient-to-r from-blue-600 to-cyan-600'
+                        : 'bg-gradient-to-r from-emerald-600 to-teal-600'
+                    }`}
+                  >
+                    {brandName}
+                  </span>
+                  {activeMedia.type === 'VIDEO' && (
+                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider bg-slate-950/80 text-cyan-300 border border-cyan-500/30">
+                      Product Video
+                    </span>
+                  )}
+                </div>
+
+                {/* Quick Share Button & Notification */}
+                <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
+                  <button
+                    type="button"
+                    onClick={handleShare}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/95 hover:bg-white text-slate-700 hover:text-cyan-600 text-xs font-bold shadow-lg backdrop-blur-md transition-all hover:scale-105 active:scale-95 border border-slate-200"
+                    title="Share this product via WhatsApp, Bluetooth, Social Media or Copy Link"
+                    aria-label="Share product"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        <span className="text-emerald-700 font-extrabold">Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Share2 className="w-3.5 h-3.5" />
+                        <span>Share</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Bottom Capacity & Exact Model Number Pill */}
+                {(capacityAttr || product.model_number) && (
+                  <div className="absolute bottom-4 left-4 right-4 flex items-center z-10 pointer-events-none">
+                    <span className="inline-flex items-center gap-2 bg-slate-950/90 backdrop-blur-md text-white text-xs font-bold px-3.5 py-2 rounded-2xl border border-white/20 shadow-xl">
+                      {capacityAttr && (
+                        <span className="text-cyan-300 font-black">{capacityAttr.value}</span>
+                      )}
+                      {capacityAttr && product.model_number && <span className="text-slate-400 font-normal">•</span>}
+                      {product.model_number && (
+                        <span className="text-slate-200 font-mono font-bold tracking-wide">{product.model_number}</span>
+                      )}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Guarantee Badges */}

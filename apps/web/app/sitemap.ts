@@ -1,7 +1,12 @@
 import { MetadataRoute } from 'next';
-import { getMergedProducts, SEED_CATEGORIES, SEED_BRANDS, SEED_SERVICES } from '@tanmayee/database';
+import {
+  fetchLiveProductsFromSupabase,
+  SEED_CATEGORIES,
+  SEED_BRANDS,
+  SEED_SERVICES,
+} from '@tanmayee/database';
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Use canonical www domain matching the live 200 OK host to prevent GSC redirect warnings
   const baseUrl = 'https://www.tanmayeetechnologies.com';
   const currentDate = new Date();
@@ -29,7 +34,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     {
       url: `${baseUrl}/offers`,
       lastModified: currentDate,
-      changeFrequency: 'weekly',
+      changeFrequency: 'daily',
       priority: 0.9,
     },
     {
@@ -42,7 +47,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${baseUrl}/about`,
       lastModified: currentDate,
       changeFrequency: 'monthly',
-      priority: 0.75,
+      priority: 0.8,
     },
     {
       url: `${baseUrl}/contact`,
@@ -54,7 +59,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${baseUrl}/search`,
       lastModified: currentDate,
       changeFrequency: 'weekly',
-      priority: 0.65,
+      priority: 0.7,
     },
   ];
 
@@ -66,7 +71,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.9,
   }));
 
-  // 3. Category Landing Pages (Parent categories and subcategories)
+  // 3. Category Landing Pages (Parent categories, subcategories, and aliases)
   const categoryRoutes: MetadataRoute.Sitemap = SEED_CATEGORIES.map((category) => ({
     url: `${baseUrl}/categories/${category.slug}`,
     lastModified: currentDate,
@@ -74,16 +79,49 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: category.parent_id === null ? 0.85 : 0.8,
   }));
 
-  // 4. Service Landing Pages
-  const serviceRoutes: MetadataRoute.Sitemap = SEED_SERVICES.map((service) => ({
-    url: `${baseUrl}/services/${service.slug}`,
+  // Dedicated specialized category aliases for HVAC & Refrigeration SEO
+  const extraCategoryAliases = [
+    'commercial-cassette-ac',
+    'commercial-verticool-ac',
+    'window-ac',
+    'fixed-speed-split-ac',
+    'convertible-green-freezer',
+    'visi-cooler',
+    'stainless-steel-water-cooler',
+  ].map((slug) => ({
+    url: `${baseUrl}/categories/${slug}`,
     lastModified: currentDate,
-    changeFrequency: 'monthly',
+    changeFrequency: 'weekly' as const,
     priority: 0.8,
   }));
 
-  // 5. Product Detail Pages (All commercial models including merged overrides)
-  const allProducts = getMergedProducts();
+  // 4. Service Landing Pages
+  const primaryServiceSlugs = [
+    'ac-installation',
+    'freezer-installation',
+    'annual-maintenance-contract',
+    'preventive-maintenance',
+    'cold-room-installation',
+    'repair-emergency',
+  ];
+
+  const serviceRoutes: MetadataRoute.Sitemap = [
+    ...SEED_SERVICES.map((service) => ({
+      url: `${baseUrl}/services/${service.slug}`,
+      lastModified: currentDate,
+      changeFrequency: 'monthly' as const,
+      priority: 0.85,
+    })),
+    ...primaryServiceSlugs.map((slug) => ({
+      url: `${baseUrl}/services/${slug}`,
+      lastModified: currentDate,
+      changeFrequency: 'monthly' as const,
+      priority: 0.85,
+    })),
+  ];
+
+  // 5. Product Detail Pages (Live from Supabase + Seed Catalogue)
+  const allProducts = await fetchLiveProductsFromSupabase();
   const productRoutes: MetadataRoute.Sitemap = allProducts.map((product) => ({
     url: `${baseUrl}/products/${product.slug}`,
     lastModified: product.updated_at ? new Date(product.updated_at) : currentDate,
@@ -91,5 +129,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: product.featured ? 0.85 : 0.75,
   }));
 
-  return [...staticRoutes, ...brandRoutes, ...categoryRoutes, ...serviceRoutes, ...productRoutes];
+  return [
+    ...staticRoutes,
+    ...brandRoutes,
+    ...categoryRoutes,
+    ...extraCategoryAliases,
+    ...serviceRoutes,
+    ...productRoutes,
+  ];
 }
