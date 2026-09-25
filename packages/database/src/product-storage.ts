@@ -1,49 +1,63 @@
 // ============================================================================
 // @tanmayee/database — Unified Product Storage & Custom Product Synchronization
-// Supports local file persistence, Supabase synchronization, and real-time merging
+// Safe for both client-side browser bundles, Next.js SSR, and Node.js server runtime
 // ============================================================================
 
-import fs from 'fs';
-import path from 'path';
 import { SEED_PRODUCTS } from './seed-products';
 import { getSupabaseAdmin } from './index';
-
-// Path to persistent custom-products.json
-const CUSTOM_PRODUCTS_PATH = path.resolve(__dirname, 'custom-products.json');
+import customProductsStatic from './custom-products.json';
 
 // In-memory cache of custom products
 let inMemoryCustomProducts: any[] | null = null;
 
 /**
- * Load custom products from disk or memory
+ * Helper to safely get Node.js fs & path modules without breaking client-side webpack bundles
+ */
+function getNodeModules(): { fs: any; path: any } | null {
+  try {
+    if (typeof window === 'undefined' && typeof process !== 'undefined' && process.versions && process.versions.node) {
+      // Use eval('require') so webpack does not attempt to bundle 'fs' or 'path' for browser
+      const req = eval('require');
+      const fs = req('fs');
+      const path = req('path');
+      return { fs, path };
+    }
+  } catch {
+    // Non-Node environment or bundling restriction
+  }
+  return null;
+}
+
+/**
+ * Load custom products from memory, disk (if on Node server), or static import fallback
  */
 export function getCustomProducts(): any[] {
   if (inMemoryCustomProducts) {
     return inMemoryCustomProducts;
   }
 
-  try {
-    if (fs.existsSync(CUSTOM_PRODUCTS_PATH)) {
-      const fileData = fs.readFileSync(CUSTOM_PRODUCTS_PATH, 'utf-8');
-      inMemoryCustomProducts = JSON.parse(fileData);
-      if (Array.isArray(inMemoryCustomProducts)) {
-        return inMemoryCustomProducts;
+  // 1. In Node server environment, check if updated file exists on disk
+  const node = getNodeModules();
+  if (node) {
+    try {
+      const customPath = node.path.resolve(__dirname, 'custom-products.json');
+      if (node.fs.existsSync(customPath)) {
+        const fileData = node.fs.readFileSync(customPath, 'utf-8');
+        const parsed = JSON.parse(fileData);
+        if (Array.isArray(parsed)) {
+          inMemoryCustomProducts = parsed;
+          return inMemoryCustomProducts;
+        }
       }
+    } catch {
+      // Fall through to static import
     }
-  } catch (err) {
-    console.warn('Could not read custom-products.json from disk:', err);
   }
 
-  try {
-    // Fallback to static require
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const staticData = require('./custom-products.json');
-    if (Array.isArray(staticData)) {
-      inMemoryCustomProducts = staticData;
-      return inMemoryCustomProducts;
-    }
-  } catch {
-    // Ignore fallback error
+  // 2. Browser & Vercel serverless fallback: use bundled customProductsStatic
+  if (Array.isArray(customProductsStatic)) {
+    inMemoryCustomProducts = [...customProductsStatic];
+    return inMemoryCustomProducts;
   }
 
   inMemoryCustomProducts = [];
@@ -95,7 +109,7 @@ export function getMergedProducts(): any[] {
 }
 
 /**
- * Save a custom product permanently to custom-products.json and sync to Supabase
+ * Save a custom product permanently to custom-products.json (when writable) and sync to Supabase
  */
 export async function saveCustomProduct(productPayload: any): Promise<{ success: boolean; product: any; error?: string }> {
   try {
@@ -105,7 +119,7 @@ export async function saveCustomProduct(productPayload: any): Promise<{ success:
       updated_at: now,
     };
 
-    // 1. Update in-memory and write to disk
+    // 1. Update in-memory cache
     const currentList = [...getCustomProducts()];
     const existingIndex = currentList.findIndex(
       (p) => p.id === updatedPayload.id || (updatedPayload.slug && p.slug === updatedPayload.slug)
@@ -122,13 +136,18 @@ export async function saveCustomProduct(productPayload: any): Promise<{ success:
 
     inMemoryCustomProducts = currentList;
 
-    try {
-      fs.writeFileSync(CUSTOM_PRODUCTS_PATH, JSON.stringify(currentList, null, 2), 'utf-8');
-    } catch (fsErr) {
-      console.warn('Failed to write to custom-products.json file:', fsErr);
+    // 2. Persist to disk if running in local Node environment with write permission
+    const node = getNodeModules();
+    if (node) {
+      try {
+        const customPath = node.path.resolve(__dirname, 'custom-products.json');
+        node.fs.writeFileSync(customPath, JSON.stringify(currentList, null, 2), 'utf-8');
+      } catch (fsErr) {
+        console.warn('Local file write skipped (read-only or serverless environment):', fsErr);
+      }
     }
 
-    // 2. Also sync to Supabase if available
+    // 3. Sync to Supabase database (primary persistent storage for production)
     try {
       const supabase = getSupabaseAdmin();
       if (supabase) {
