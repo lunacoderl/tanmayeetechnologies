@@ -76,14 +76,16 @@ export default function AdminProductsPage() {
 
   const filteredList = useMemo(() => {
     return products.filter((p) => {
+      const bName = (p.brand_name || (p.product_name?.toLowerCase().includes('blue star') ? 'Blue Star' : 'Rockwell')).toLowerCase();
       if (statusFilter !== 'ALL' && p.status !== statusFilter) return false;
-      if (brandFilter !== 'ALL' && p.brand_name.toLowerCase().replace(/\s+/g, '-') !== brandFilter) return false;
+      if (brandFilter !== 'ALL' && bName.replace(/\s+/g, '-') !== brandFilter) return false;
 
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         return (
           p.product_name.toLowerCase().includes(q) ||
-          (p.model_number && p.model_number.toLowerCase().includes(q))
+          (p.model_number && p.model_number.toLowerCase().includes(q)) ||
+          bName.includes(q)
         );
       }
       return true;
@@ -188,8 +190,9 @@ export default function AdminProductsPage() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredList.map((p, index) => {
-                const isBlueStar = p.brand_name.toLowerCase().includes('blue star');
-                const adminImgUrl = p.media?.[0]?.url || (isBlueStar
+                const brandName = p.brand_name || (p.product_name?.toLowerCase().includes('blue star') ? 'Blue Star' : 'Rockwell');
+                const isBlueStar = brandName.toLowerCase().includes('blue star');
+                const adminImgUrl = (p as any).primary_image_url || p.media?.[0]?.url || (isBlueStar
                   ? 'https://cdn.shopify.com/s/files/1/0888/8297/0937/files/ic518vnurav_gallery-images-01_2_4.png'
                   : 'https://www.rockwell.co.in/cdn/shop/files/GFR250.png');
                 return (
@@ -224,7 +227,7 @@ export default function AdminProductsPage() {
                             : 'bg-emerald-50 text-emerald-700'
                         }`}
                       >
-                        {p.brand_name}
+                        {brandName}
                       </span>
                     </td>
 

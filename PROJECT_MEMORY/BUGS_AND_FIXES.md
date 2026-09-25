@@ -107,5 +107,33 @@
   3. Connected both `/api/products` (admin and web), admin edit pages, and storefront catalog and category pages to `fetchLiveProductsFromSupabase()`.
 - **Status:** **RESOLVED**
 
+---
+
+## BUG-010: Admin Products Page TypeError: Cannot read properties of undefined (reading 'toLowerCase')
+- **Error:** `Cannot read properties of undefined (reading 'toLowerCase') at eval (app/products/page.tsx:191:49)`.
+- **Root Cause:**
+  1. Products retrieved from Supabase via `fetchLiveProductsFromSupabase()` in `packages/database/src/product-storage.ts` populated `brand_id` and `category_id`, but `brand_name` was `undefined`.
+  2. In `apps/admin/app/products/page.tsx`, `p.brand_name.toLowerCase().includes('blue star')` lacked nullish checks and crashed on render when rendering Supabase rows.
+- **Fix:**
+  1. Updated `packages/database/src/product-storage.ts` in `fetchLiveProductsFromSupabase()` to safely look up `brand_name` and `category_name` from `SEED_BRANDS` and `SEED_CATEGORIES` by `brand_id` and `category_id`, with fallback to product title inference.
+  2. Hardened `apps/admin/app/products/page.tsx` line 191 to `const brandName = p.brand_name || (p.product_name?.toLowerCase().includes('blue star') ? 'Blue Star' : 'Rockwell');` and `const isBlueStar = brandName.toLowerCase().includes('blue star');`.
+  3. Added nullish checks on category and brand filtering in `apps/admin/app/products/page.tsx` and `apps/web/app/products/page.tsx`.
+- **Status:** **RESOLVED**
+
+---
+
+## BUG-011: Disconnection Between Admin-Added Images and Storefront Product Display
+- **Error:** Images and products saved in Admin were not appearing or connecting to the public storefront (`apps/web`), and cards were showing fallback images.
+- **Root Cause:**
+  1. Supabase database previously held 113 outdated dummy products from an initial seed (`001_seed_data.sql`) whose slugs, models, and IDs did not match the 155 authentic catalog items in `extracted-catalog.json`.
+  2. `saveCustomProduct()` in `packages/database/src/product-storage.ts` attempted to lookup products only by slug, not by model number, and didn't preserve the full `updatedPayload.media` gallery.
+  3. In `apps/web/components/product/product-card.tsx`, `imageUrl` was hardcoded to check only `product.media?.[0]?.url`, ignoring `product.primary_image_url` and `gallery_urls`.
+- **Fix:**
+  1. Created and executed `scripts/sync-catalog-to-supabase.mjs`, removing obsolete dummy records and synchronizing all 155 catalog products with deterministic UUIDs, 502 genuine media items (`MAIN_IMAGE` and `GALLERY`), and 2,325 attributes in Supabase PostgreSQL.
+  2. Upgraded `saveCustomProduct()` to match existing products by `slug`, `model_number`, or `id`, accumulate all media from `primary_image_url`, `gallery_urls`, and `media` without duplication, and invalidate in-memory cache (`lastSupabaseFetchTime = 0`).
+  3. Updated `apps/web/components/product/product-card.tsx` to check `(product as any).primary_image_url`, `product.media?.find(m => m.is_primary)?.url`, `product.media?.[0]?.url`, and `product.gallery_urls?.[0]` before falling back to brand defaults.
+- **Status:** **RESOLVED**
+
+
 
 

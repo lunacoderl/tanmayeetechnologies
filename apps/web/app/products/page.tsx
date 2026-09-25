@@ -79,19 +79,21 @@ export default function ProductsPage() {
         (p) =>
           p.product_name.toLowerCase().includes(q) ||
           (p.model_number && p.model_number.toLowerCase().includes(q)) ||
-          p.brand_name.toLowerCase().includes(q) ||
-          p.category_name.toLowerCase().includes(q)
+          (p.brand_name && p.brand_name.toLowerCase().includes(q)) ||
+          (p.category_name && p.category_name.toLowerCase().includes(q))
       );
     }
 
     // Brand filter
     if (selectedBrand !== 'all') {
-      result = result.filter(
-        (p) =>
-          p.brand_name.toLowerCase().replace(/\s+/g, '-') === selectedBrand ||
-          (selectedBrand === 'rockwell' && p.brand_name.toLowerCase().includes('rockwell')) ||
-          (selectedBrand === 'blue-star' && p.brand_name.toLowerCase().includes('blue star'))
-      );
+      result = result.filter((p) => {
+        const bName = (p.brand_name || (p.product_name?.toLowerCase().includes('blue star') ? 'Blue Star' : 'Rockwell')).toLowerCase();
+        return (
+          bName.replace(/\s+/g, '-') === selectedBrand ||
+          (selectedBrand === 'rockwell' && bName.includes('rockwell')) ||
+          (selectedBrand === 'blue-star' && bName.includes('blue star'))
+        );
+      });
     }
 
     // Category filter

@@ -5,6 +5,7 @@
 // ============================================================================
 
 import { SEED_PRODUCTS } from './seed-products';
+import { SEED_BRANDS, SEED_CATEGORIES } from './seed-data';
 import { getSupabaseAdmin } from './index';
 import customProductsStatic from './custom-products.json';
 
@@ -204,11 +205,39 @@ export async function fetchLiveProductsFromSupabase(): Promise<any[]> {
         });
       }
 
+      // Resolve Brand and Category Names safely
+      const brand = SEED_BRANDS.find((b) => b.id === row.brand_id);
+      const brandName =
+        row.brand_name ||
+        brand?.name ||
+        (row.product_name?.toLowerCase().includes('blue star') ? 'Blue Star' : 'Rockwell');
+
+      const cat = SEED_CATEGORIES.find((c) => c.id === row.category_id);
+      const categoryName = row.category_name || cat?.name || 'Cooling Equipment';
+
+      // Find matching seed product by slug or model_number for fallback media/data
+      const matchingSeed = SEED_PRODUCTS.find(
+        (sp) => sp.slug === row.slug || (row.model_number && sp.model_number === row.model_number)
+      ) as any;
+
+      if (mediaList.length === 0 && matchingSeed) {
+        if (matchingSeed.primary_image_url) {
+          primaryUrl = matchingSeed.primary_image_url;
+        } else if (matchingSeed.media?.[0]?.url) {
+          primaryUrl = matchingSeed.media[0].url;
+        }
+        if (Array.isArray(matchingSeed.media)) {
+          matchingSeed.media.forEach((m: any) => {
+            if (typeof m === 'object' && m.url) mediaList.push(m);
+          });
+        }
+      }
+
       // If no media in table but product has an image in seed, fallback
       const galleryUrls = mediaList.filter((m) => !m.is_primary).map((m) => m.url);
 
       // Process attributes
-      const attributes = Array.isArray(row.product_attributes)
+      const attributes = Array.isArray(row.product_attributes) && row.product_attributes.length > 0
         ? row.product_attributes
             .sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0))
             .map((attr: any) => ({
@@ -219,15 +248,17 @@ export async function fetchLiveProductsFromSupabase(): Promise<any[]> {
               attribute_unit: attr.attribute_unit || '',
               unit: attr.attribute_unit || '',
             }))
-        : [];
+        : (matchingSeed?.attributes || []);
 
       return {
         id: row.id,
         slug: row.slug,
         product_name: row.product_name,
-        model_number: row.model_number,
+        model_number: row.model_number || matchingSeed?.model_number || '',
         brand_id: row.brand_id,
         category_id: row.category_id,
+        brand_name: brandName,
+        category_name: categoryName,
         status: row.status || 'PUBLISHED',
         reference_price: row.reference_price || row.price_range_min || 0,
         dealer_price: row.price_range_min || row.reference_price || 0,
@@ -235,14 +266,14 @@ export async function fetchLiveProductsFromSupabase(): Promise<any[]> {
         short_description: row.short_description || '',
         description: row.description || '',
         long_description: row.description || '',
-        features: Array.isArray(row.features) ? row.features : [],
-        applications: Array.isArray(row.applications) ? row.applications : [],
-        primary_image_url: primaryUrl,
-        gallery_urls: galleryUrls,
-        media: mediaList,
+        features: Array.isArray(row.features) && row.features.length > 0 ? row.features : (matchingSeed?.features || []),
+        applications: Array.isArray(row.applications) && row.applications.length > 0 ? row.applications : (matchingSeed?.applications || []),
+        primary_image_url: primaryUrl || matchingSeed?.primary_image_url || '',
+        gallery_urls: galleryUrls.length > 0 ? galleryUrls : (matchingSeed?.gallery_urls || []),
+        media: mediaList.length > 0 ? mediaList : (matchingSeed?.media || []),
         attributes,
-        seo_title: row.seo_title,
-        seo_description: row.seo_description,
+        seo_title: row.seo_title || matchingSeed?.seo_title,
+        seo_description: row.seo_description || matchingSeed?.seo_description,
         updated_at: row.updated_at,
       };
     });
@@ -254,12 +285,19 @@ export async function fetchLiveProductsFromSupabase(): Promise<any[]> {
     // Merge with SEED_PRODUCTS
     const merged = [...SEED_PRODUCTS];
     for (const custom of mappedDbProducts) {
-      const idx = merged.findIndex((p) => p.id === custom.id || (custom.slug && p.slug === custom.slug));
+      const idx = merged.findIndex(
+        (p) =>
+          p.id === custom.id ||
+          (custom.slug && p.slug === custom.slug) ||
+          (custom.model_number && p.model_number && p.model_number === custom.model_number)
+      );
       if (idx >= 0) {
         const existing = merged[idx] as any;
         merged[idx] = {
           ...existing,
           ...custom,
+          brand_name: custom.brand_name || existing.brand_name,
+          category_name: custom.category_name || existing.category_name,
           primary_image_url: custom.primary_image_url || existing.primary_image_url,
           gallery_urls: custom.gallery_urls?.length ? custom.gallery_urls : existing.gallery_urls,
           media: custom.media?.length ? custom.media : existing.media,
@@ -321,11 +359,13 @@ export async function saveCustomProduct(productPayload: any): Promise<{ success:
     try {
       const supabase = getSupabaseAdmin();
       if (supabase) {
-        // Find existing product by slug or id
+        // Find existing product by slug, model_number, or id
         let targetId: string | null = null;
-        let query = supabase.from('products').select('id, slug');
+        let query = supabase.from('products').select('id, slug, model_number');
         if (updatedPayload.slug) {
           query = query.eq('slug', updatedPayload.slug);
+        } else if (updatedPayload.model_number) {
+          query = query.eq('model_number', updatedPayload.model_number);
         } else if (updatedPayload.id && !updatedPayload.id.startsWith('p')) {
           query = query.eq('id', updatedPayload.id);
         }
@@ -398,18 +438,39 @@ export async function saveCustomProduct(productPayload: any): Promise<{ success:
           // Gallery images / videos
           const gallery = Array.isArray(updatedPayload.gallery_urls) ? updatedPayload.gallery_urls : [];
           gallery.forEach((url: string, index: number) => {
-            if (url && url !== updatedPayload.primary_image_url) {
+            if (url && url !== updatedPayload.primary_image_url && !mediaToInsert.some((x) => x.url === url)) {
               mediaToInsert.push({
                 product_id: targetId,
                 type: isMediaVideo(url) ? 'VIDEO' : 'GALLERY',
                 url,
                 is_primary: false,
-                sort_order: index + 1,
+                sort_order: mediaToInsert.length,
                 alt_text: `${updatedPayload.product_name} View ${index + 2}`,
                 title: `${updatedPayload.product_name} Angle ${index + 2}`,
               });
             }
           });
+
+          // Also check updatedPayload.media
+          if (Array.isArray(updatedPayload.media)) {
+            updatedPayload.media.forEach((m: any) => {
+              const url = typeof m === 'string' ? m : m.url;
+              if (url && !mediaToInsert.some((x) => x.url === url)) {
+                mediaToInsert.push({
+                  product_id: targetId,
+                  type: m.type || (isMediaVideo(url) ? 'VIDEO' : 'GALLERY'),
+                  url,
+                  is_primary: !!m.is_primary,
+                  sort_order: mediaToInsert.length,
+                  alt_text: m.alt || `${updatedPayload.product_name} View ${mediaToInsert.length + 1}`,
+                  title: `${updatedPayload.product_name} Media ${mediaToInsert.length + 1}`,
+                });
+              }
+            });
+          }
+
+          // Invalidate cache to ensure fresh read
+          lastSupabaseFetchTime = 0;
 
           if (mediaToInsert.length > 0) {
             const { error: mediaErr } = await supabase.from('product_media').insert(mediaToInsert);

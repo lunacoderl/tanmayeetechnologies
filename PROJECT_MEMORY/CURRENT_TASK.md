@@ -39,3 +39,7 @@
   - Upgraded `apps/web/app/sitemap.ts` to async fetch all live Supabase products, all category aliases, and commercial service landing routes.
 - [x] **Verification & Health Check:**
   - Turbo typecheck executed across all packages: `@tanmayee/admin`, `@tanmayee/web`, `@tanmayee/api`, `@tanmayee/config`: **4/4 passed (exit code 0)**.
+- [x] **Admin brand_name TypeError & Supabase Catalog Sync (BUG-010, BUG-011):**
+  - Eliminated `TypeError: Cannot read properties of undefined (reading 'toLowerCase')` on admin products page by safely deriving `brand_name` and `category_name` via `SEED_BRANDS` and `SEED_CATEGORIES`.
+  - Executed `scripts/sync-catalog-to-supabase.mjs`: purged 113 outdated dummy database rows and seeded all 155 authentic commercial models with deterministic UUIDs, 502 media records, and 2,325 attributes into Supabase.
+  - Ensured seamless 2-way connection between Admin and Storefront cards/details with prioritized image fallback.

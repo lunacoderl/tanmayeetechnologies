@@ -4,6 +4,21 @@ All notable changes and technical implementation milestones are documented in th
 
 ---
 
+## [2026-09-25] - Fix Admin brand_name TypeError & Sync 155-Catalog to Live Supabase Database
+
+### Fixed
+- **Admin Products Page TypeError Crash (`apps/admin/app/products/page.tsx`)**:
+  - Resolved `TypeError: Cannot read properties of undefined (reading 'toLowerCase')` at line 191 by safely resolving `brand_name` with optional chaining and fallback to product title inference.
+  - Hardened brand and category filters against undefined values.
+- **Product and Media Disconnection Between Admin and Storefront (`packages/database/src/product-storage.ts`, `apps/web/components/product/product-card.tsx`)**:
+  - Removed 113 outdated dummy database records from Supabase PostgreSQL that lacked authentic slugs, models, and image associations.
+  - Synchronized all 155 commercial products with deterministic UUIDs matching `extracted-catalog.json`, 502 genuine media items (`MAIN_IMAGE` and `GALLERY`), and 2,325 attributes in Supabase `products`, `product_media`, and `product_attributes`.
+  - Upgraded `fetchLiveProductsFromSupabase()` to map `brand_name` and `category_name` via `SEED_BRANDS` and `SEED_CATEGORIES`, and backfill missing attributes from seed products.
+  - Upgraded `saveCustomProduct()` to lookup existing products by `slug`, `model_number`, or `id`, accumulate gallery images and media without duplication, and invalidate in-memory cache immediately upon modification.
+  - Enhanced `ProductCard` to prioritize `primary_image_url`, primary media, first media, and first gallery URL before falling back to brand defaults.
+
+---
+
 ## [2026-09-23] - Secure Environment-Driven Admin Authentication
 
 ### Added & Enhanced
