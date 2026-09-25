@@ -36,7 +36,7 @@ import {
 } from 'lucide-react';
 import { useCart } from '../../lib/cart-context';
 import { useUserStore } from '../../lib/user-store-context';
-import { SEED_CATEGORIES, SEED_BRANDS, SEED_PRODUCTS, SEED_SERVICES } from '@tanmayee/database';
+import { SEED_CATEGORIES, SEED_BRANDS, getMergedProducts, SEED_SERVICES } from '@tanmayee/database';
 import { COMPANY } from '@tanmayee/config';
 
 export function Header() {
@@ -120,7 +120,7 @@ export function Header() {
     }
 
     // 1. Filter Products (Matches name, model number, sku, brand, category, capacity)
-    const filteredProducts = (SEED_PRODUCTS as any[]).filter((p) => {
+    const filteredProducts = (getMergedProducts() as any[]).filter((p) => {
       const name = (p.product_name || '').toLowerCase();
       const model = (p.model_number || '').toLowerCase();
       const sku = (p.sku || '').toLowerCase();

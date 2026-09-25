@@ -15,7 +15,7 @@ import {
   ChevronDown,
   RotateCcw,
 } from 'lucide-react';
-import { SEED_PRODUCTS, SEED_CATEGORIES, SEED_BRANDS } from '@tanmayee/database';
+import { getMergedProducts, SEED_CATEGORIES, SEED_BRANDS } from '@tanmayee/database';
 import { ProductCard } from '../../components/product/product-card';
 import { RecommendedProducts } from '../../components/product/recommended-products';
 import { useUserStore } from '../../lib/user-store-context';
@@ -47,7 +47,7 @@ export default function ProductsPage() {
 
   // Filter products
   const filteredProducts = useMemo(() => {
-    let result = [...SEED_PRODUCTS];
+    let result = [...getMergedProducts()];
 
     // Search query
     if (searchQuery.trim()) {
@@ -93,7 +93,7 @@ export default function ProductsPage() {
     // Star rating filter
     if (selectedStar !== 'all') {
       result = result.filter((p) =>
-        p.attributes.some((a) => a.name.toLowerCase().includes('star') && a.value.includes(selectedStar))
+        p.attributes.some((a: any) => a.name.toLowerCase().includes('star') && a.value.includes(selectedStar))
       );
     }
 

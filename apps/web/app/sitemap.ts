@@ -1,8 +1,9 @@
 import { MetadataRoute } from 'next';
-import { SEED_PRODUCTS, SEED_CATEGORIES, SEED_BRANDS, SEED_SERVICES } from '@tanmayee/database';
+import { getMergedProducts, SEED_CATEGORIES, SEED_BRANDS, SEED_SERVICES } from '@tanmayee/database';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://tanmayeetechnologies.com';
+  // Use canonical www domain matching the live 200 OK host to prevent GSC redirect warnings
+  const baseUrl = 'https://www.tanmayeetechnologies.com';
   const currentDate = new Date();
 
   // 1. Static Core Pages
@@ -18,6 +19,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: currentDate,
       changeFrequency: 'daily',
       priority: 0.95,
+    },
+    {
+      url: `${baseUrl}/categories`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/offers`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly',
+      priority: 0.9,
     },
     {
       url: `${baseUrl}/services`,
@@ -61,13 +74,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: category.parent_id === null ? 0.85 : 0.8,
   }));
 
-  // 4. Product Detail Pages (All 155+ commercial models)
-  const productRoutes: MetadataRoute.Sitemap = SEED_PRODUCTS.map((product) => ({
+  // 4. Service Landing Pages
+  const serviceRoutes: MetadataRoute.Sitemap = SEED_SERVICES.map((service) => ({
+    url: `${baseUrl}/services/${service.slug}`,
+    lastModified: currentDate,
+    changeFrequency: 'monthly',
+    priority: 0.8,
+  }));
+
+  // 5. Product Detail Pages (All commercial models including merged overrides)
+  const allProducts = getMergedProducts();
+  const productRoutes: MetadataRoute.Sitemap = allProducts.map((product) => ({
     url: `${baseUrl}/products/${product.slug}`,
     lastModified: product.updated_at ? new Date(product.updated_at) : currentDate,
     changeFrequency: 'weekly',
     priority: product.featured ? 0.85 : 0.75,
   }));
 
-  return [...staticRoutes, ...brandRoutes, ...categoryRoutes, ...productRoutes];
+  return [...staticRoutes, ...brandRoutes, ...categoryRoutes, ...serviceRoutes, ...productRoutes];
 }

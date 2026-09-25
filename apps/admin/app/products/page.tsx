@@ -15,11 +15,11 @@ import {
   History,
   X,
 } from 'lucide-react';
-import { SEED_PRODUCTS } from '@tanmayee/database';
+import { getMergedProducts } from '@tanmayee/database';
 import { ProductStatus } from '@tanmayee/config';
 
 export default function AdminProductsPage() {
-  const [products, setProducts] = useState(SEED_PRODUCTS);
+  const [products, setProducts] = useState(getMergedProducts());
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [brandFilter, setBrandFilter] = useState('ALL');

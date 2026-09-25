@@ -6,7 +6,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { SEED_PRODUCTS, SEED_BRANDS, SEED_CATEGORIES } from '@tanmayee/database';
+import { getMergedProducts, SEED_BRANDS, SEED_CATEGORIES } from '@tanmayee/database';
 import { COMPANY } from '@tanmayee/config';
 import { ProductDetailClient } from './product-detail-client';
 
@@ -16,7 +16,8 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const product = SEED_PRODUCTS.find((p) => p.slug === slug || p.id === slug);
+  const allProducts = getMergedProducts();
+  const product = allProducts.find((p) => p.slug === slug || p.id === slug);
 
   if (!product) {
     return {
@@ -44,12 +45,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       'Tanmayee Technologies',
     ].filter(Boolean),
     alternates: {
-      canonical: `https://tanmayeetechnologies.com/products/${product.slug}`,
+      canonical: `https://www.tanmayeetechnologies.com/products/${product.slug}`,
     },
     openGraph: {
       title,
       description,
-      url: `https://tanmayeetechnologies.com/products/${product.slug}`,
+      url: `https://www.tanmayeetechnologies.com/products/${product.slug}`,
       siteName: 'Tanmayee Technologies',
       images: [
         {
@@ -73,7 +74,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ProductDetailPage({ params }: PageProps) {
   const { slug } = await params;
-  const product = SEED_PRODUCTS.find((p) => p.slug === slug || p.id === slug);
+  const allProducts = getMergedProducts();
+  const product = allProducts.find((p) => p.slug === slug || p.id === slug);
 
   if (!product) {
     notFound();
@@ -83,7 +85,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
   const category = SEED_CATEGORIES.find((c) => c.id === product.category_id);
 
   // Similar products in same category or brand
-  const similarProducts = SEED_PRODUCTS.filter(
+  const similarProducts = allProducts.filter(
     (p) => p.id !== product.id && (p.category_id === product.category_id || p.brand_id === product.brand_id)
   ).slice(0, 4);
 
@@ -95,7 +97,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
     '@context': 'https://schema.org/',
     '@type': 'Product',
     name: product.product_name,
-    image: product.media?.map((m) => m.url) || [imageUrl],
+    image: product.media?.map((m: any) => m.url) || [imageUrl],
     description: product.description || product.short_description,
     sku: product.sku || product.model_number || product.id,
     mpn: product.model_number || product.sku,
@@ -106,7 +108,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
     category: category?.name,
     offers: {
       '@type': 'Offer',
-      url: `https://tanmayeetechnologies.com/products/${product.slug}`,
+      url: `https://www.tanmayeetechnologies.com/products/${product.slug}`,
       priceCurrency: 'INR',
       price: product.reference_price || 0,
       priceValidUntil: '2026-12-31',
@@ -116,7 +118,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
         '@type': 'Organization',
         name: 'Tanmayee Technologies',
         telephone: COMPANY.PHONE_DISPLAY,
-        url: 'https://tanmayeetechnologies.com',
+        url: 'https://www.tanmayeetechnologies.com',
       },
     },
     aggregateRating: {

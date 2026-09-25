@@ -223,6 +223,55 @@ export const SEED_CATEGORIES: Category[] = [
   },
 ];
 
+export const CATEGORY_ALIASES: Record<string, string> = {
+  'commercial-cassette-ac': 'cassette-ac',
+  'commercial-cassette-acs': 'cassette-ac',
+  'commercial-verticool-ac': 'tower-ac',
+  'commercial-verticool-acs': 'tower-ac',
+  'verticool-ac': 'tower-ac',
+  'verticool': 'tower-ac',
+  'window-ac': 'window-inverter-ac',
+  'window-acs': 'window-inverter-ac',
+  'fixed-speed-split-ac': 'non-inverter-split-ac',
+  'convertible-green-freezer': 'freezers',
+  'convertible-green-freezers': 'freezers',
+  'green-freezer': 'freezers',
+  'green-freezers': 'freezers',
+  'visi-cooler': 'visi-coolers',
+  'display-cooler': 'visi-coolers',
+  'display-coolers': 'visi-coolers',
+  'stainless-steel-water-cooler': 'water-coolers-dispensers',
+  'stainless-steel-water-coolers': 'water-coolers-dispensers',
+  'water-cooler': 'water-coolers-dispensers',
+  'water-coolers': 'water-coolers-dispensers',
+  'kitchen-refrigeration': 'commercial-kitchen-refrigeration',
+  'air-conditioner': 'air-conditioners',
+  'split-ac': 'inverter-split-ac',
+  'split-acs': 'inverter-split-ac',
+  'ice-maker': 'ice-makers',
+  'ice-machines': 'ice-makers',
+};
+
+export function findCategory(slugOrId: string): Category | undefined {
+  const normalized = (slugOrId || '').toLowerCase().trim();
+  const direct = SEED_CATEGORIES.find((c) => c.slug === normalized || c.id === normalized);
+  if (direct) return direct;
+
+  const targetSlug = CATEGORY_ALIASES[normalized];
+  if (targetSlug) {
+    const aliased = SEED_CATEGORIES.find((c) => c.slug === targetSlug || c.id === targetSlug);
+    if (aliased) return aliased;
+  }
+
+  return SEED_CATEGORIES.find(
+    (c) =>
+      c.slug.includes(normalized) ||
+      normalized.includes(c.slug) ||
+      c.name.toLowerCase().includes(normalized) ||
+      normalized.includes(c.name.toLowerCase())
+  );
+}
+
 export const SEED_SERVICES: Service[] = [
   {
     id: 's0000001-0000-0000-0000-000000000001',

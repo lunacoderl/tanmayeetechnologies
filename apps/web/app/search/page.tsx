@@ -8,7 +8,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Search } from 'lucide-react';
-import { SEED_PRODUCTS, SEED_BRANDS, SEED_CATEGORIES } from '@tanmayee/database';
+import { getMergedProducts, SEED_BRANDS, SEED_CATEGORIES } from '@tanmayee/database';
 import { ProductCard } from '../../components/product/product-card';
 
 function SearchContent() {
@@ -21,15 +21,16 @@ function SearchContent() {
   }, [initialQuery]);
 
   const q = query.trim().toLowerCase();
+  const allProducts = getMergedProducts();
 
   const matchingProducts = q
-    ? SEED_PRODUCTS.filter(
+    ? allProducts.filter(
         (p) =>
           p.product_name.toLowerCase().includes(q) ||
           (p.model_number && p.model_number.toLowerCase().includes(q)) ||
           p.brand_name.toLowerCase().includes(q) ||
           p.category_name.toLowerCase().includes(q) ||
-          (p.features && p.features.some((f) => f.toLowerCase().includes(q)))
+          (p.features && p.features.some((f: string) => f.toLowerCase().includes(q)))
       )
     : [];
 

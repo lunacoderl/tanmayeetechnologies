@@ -6,7 +6,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { SEED_BRANDS, SEED_PRODUCTS } from '@tanmayee/database';
+import { SEED_BRANDS, getMergedProducts } from '@tanmayee/database';
 import { BrandClient } from './brand-client';
 
 interface PageProps {
@@ -42,12 +42,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       'Tanmayee Technologies',
     ],
     alternates: {
-      canonical: `https://tanmayeetechnologies.com/brands/${brand.slug}`,
+      canonical: `https://www.tanmayeetechnologies.com/brands/${brand.slug}`,
     },
     openGraph: {
       title,
       description,
-      url: `https://tanmayeetechnologies.com/brands/${brand.slug}`,
+      url: `https://www.tanmayeetechnologies.com/brands/${brand.slug}`,
       siteName: 'Tanmayee Technologies',
       images: [
         {
@@ -70,7 +70,7 @@ export default async function BrandPage({ params }: PageProps) {
     notFound();
   }
 
-  const products = SEED_PRODUCTS.filter(
+  const products = getMergedProducts().filter(
     (p) =>
       p.brand_id === brand.id ||
       (brand.slug === 'rockwell' && p.brand_name.toLowerCase().includes('rockwell')) ||
@@ -82,7 +82,7 @@ export default async function BrandPage({ params }: PageProps) {
     '@type': 'Brand',
     name: brand.name,
     description: brand.description,
-    url: `https://tanmayeetechnologies.com/brands/${brand.slug}`,
+    url: `https://www.tanmayeetechnologies.com/brands/${brand.slug}`,
     logo: brand.logo_url,
   };
 
@@ -94,19 +94,19 @@ export default async function BrandPage({ params }: PageProps) {
         '@type': 'ListItem',
         position: 1,
         name: 'Home',
-        item: 'https://tanmayeetechnologies.com',
+        item: 'https://www.tanmayeetechnologies.com',
       },
       {
         '@type': 'ListItem',
         position: 2,
         name: 'Brands',
-        item: 'https://tanmayeetechnologies.com/products',
+        item: 'https://www.tanmayeetechnologies.com/brands',
       },
       {
         '@type': 'ListItem',
         position: 3,
         name: brand.name,
-        item: `https://tanmayeetechnologies.com/brands/${brand.slug}`,
+        item: `https://www.tanmayeetechnologies.com/brands/${brand.slug}`,
       },
     ],
   };

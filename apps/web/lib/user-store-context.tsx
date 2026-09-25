@@ -10,7 +10,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Product } from '@tanmayee/types';
-import { SEED_PRODUCTS } from '@tanmayee/database';
+import { getMergedProducts } from '@tanmayee/database';
 
 interface UserInteractionData {
   viewedProductIds: string[];
@@ -144,7 +144,7 @@ export function UserStoreProvider({ children }: { children: React.ReactNode }) {
   // Recommendation Engine
   const getRecommendedProducts = useCallback(
     (limit = 4, excludeIds: string[] = []): Product[] => {
-      const allProducts = SEED_PRODUCTS as Product[];
+      const allProducts = getMergedProducts() as Product[];
       const excludeSet = new Set(excludeIds);
 
       // Score products based on user interactions

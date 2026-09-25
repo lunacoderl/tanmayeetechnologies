@@ -6,7 +6,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { SEED_CATEGORIES, SEED_PRODUCTS } from '@tanmayee/database';
+import { SEED_CATEGORIES, getMergedProducts, findCategory } from '@tanmayee/database';
 import { CategoryClient } from './category-client';
 
 interface PageProps {
@@ -15,7 +15,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const category = SEED_CATEGORIES.find((c) => c.slug === slug || c.id === slug);
+  const category = findCategory(slug);
 
   if (!category) {
     return {
@@ -39,12 +39,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       'Tanmayee Technologies PM Palem',
     ],
     alternates: {
-      canonical: `https://tanmayeetechnologies.com/categories/${category.slug}`,
+      canonical: `https://www.tanmayeetechnologies.com/categories/${category.slug}`,
     },
     openGraph: {
       title,
       description,
-      url: `https://tanmayeetechnologies.com/categories/${category.slug}`,
+      url: `https://www.tanmayeetechnologies.com/categories/${category.slug}`,
       siteName: 'Tanmayee Technologies',
       images: [
         {
@@ -61,7 +61,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function CategoryPage({ params }: PageProps) {
   const { slug } = await params;
-  const category = SEED_CATEGORIES.find((c) => c.slug === slug || c.id === slug);
+  const category = findCategory(slug);
 
   if (!category) {
     notFound();
@@ -69,47 +69,123 @@ export default async function CategoryPage({ params }: PageProps) {
 
   const subcategories = SEED_CATEGORIES.filter((c) => c.parent_id === category.id);
 
-  const initialProducts = SEED_PRODUCTS.filter((p) => {
+  let initialProducts = getMergedProducts().filter((p) => {
     const catSlug = category.slug;
     const catNameLower = p.category_name.toLowerCase();
+    const prodNameLower = p.product_name.toLowerCase();
+    const subId = p.subcategory_id;
 
-    return (
-      p.category_id === category.id ||
-      catNameLower.replace(/\s+/g, '-') === catSlug ||
-      (catSlug === 'freezers' &&
-        (catNameLower.includes('freezer') ||
-          p.category_id === 'c0000001-0000-0000-0000-000000000002')) ||
-      (catSlug === 'visi-coolers' &&
-        (catNameLower.includes('visi') ||
-          p.category_id === 'c0000001-0000-0000-0000-000000000003')) ||
-      (catSlug === 'water-coolers-dispensers' &&
-        (catNameLower.includes('water cooler') ||
-          catNameLower.includes('dispenser') ||
-          p.category_id === 'c0000001-0000-0000-0000-000000000004')) ||
-      (catSlug === 'air-conditioners' &&
-        (catNameLower.includes('ac') ||
-          catNameLower.includes('air conditioner') ||
-          p.category_id === 'c0000001-0000-0000-0000-000000000001')) ||
-      (catSlug === 'commercial-kitchen-refrigeration' &&
-        (p.category_id === 'c0000001-0000-0000-0000-000000000006' ||
-          catNameLower.includes('chiller') ||
-          catNameLower.includes('reach-in') ||
-          catNameLower.includes('under counter')))
-    );
+    // Direct ID match
+    if (p.category_id === category.id || p.subcategory_id === category.id) return true;
+
+    // AC Subcategories
+    if (catSlug === 'inverter-split-ac' || catSlug === 'split-ac') {
+      return (
+        subId === 'c0000002-0000-0000-0000-000000000001' ||
+        (prodNameLower.includes('inverter') && prodNameLower.includes('split'))
+      );
+    }
+    if (catSlug === 'cassette-ac' || catSlug === 'commercial-cassette-ac') {
+      return (
+        subId === 'c0000002-0000-0000-0000-000000000003' ||
+        prodNameLower.includes('cassette')
+      );
+    }
+    if (catSlug === 'tower-ac' || catSlug === 'commercial-verticool-ac') {
+      return (
+        subId === 'c0000002-0000-0000-0000-000000000004' ||
+        prodNameLower.includes('tower') ||
+        prodNameLower.includes('verticool')
+      );
+    }
+    if (catSlug === 'window-inverter-ac' || catSlug === 'window-ac' || catSlug === 'window-non-inverter-ac') {
+      return prodNameLower.includes('window');
+    }
+    if (catSlug === 'non-inverter-split-ac' || catSlug === 'fixed-speed-split-ac') {
+      return (
+        subId === 'c0000002-0000-0000-0000-000000000002' ||
+        prodNameLower.includes('non-inverter') ||
+        prodNameLower.includes('fixed speed')
+      );
+    }
+
+    // Rockwell & Refrigeration Subcategories & Parents
+    if (catSlug === 'freezers' || catSlug === 'convertible-green-freezer') {
+      return (
+        p.category_id === 'c0000001-0000-0000-0000-000000000002' ||
+        prodNameLower.includes('freezer')
+      );
+    }
+    if (catSlug === 'visi-coolers' || catSlug === 'visi-cooler') {
+      return (
+        p.category_id === 'c0000001-0000-0000-0000-000000000003' ||
+        prodNameLower.includes('visi') ||
+        catNameLower.includes('visi')
+      );
+    }
+    if (catSlug === 'water-coolers-dispensers' || catSlug === 'stainless-steel-water-cooler') {
+      return (
+        p.category_id === 'c0000001-0000-0000-0000-000000000004' ||
+        prodNameLower.includes('water cooler') ||
+        prodNameLower.includes('dispenser')
+      );
+    }
+    if (catSlug === 'ice-makers') {
+      return (
+        p.category_id === 'c0000001-0000-0000-0000-000000000005' ||
+        prodNameLower.includes('ice') ||
+        catNameLower.includes('ice')
+      );
+    }
+    if (catSlug === 'commercial-kitchen-refrigeration') {
+      return (
+        p.category_id === 'c0000001-0000-0000-0000-000000000006' ||
+        prodNameLower.includes('chiller') ||
+        prodNameLower.includes('reach-in') ||
+        prodNameLower.includes('under counter') ||
+        prodNameLower.includes('saladette')
+      );
+    }
+    if (catSlug === 'specialty-cooling') {
+      return (
+        p.category_id === 'c0000001-0000-0000-0000-000000000007' ||
+        prodNameLower.includes('wine') ||
+        prodNameLower.includes('car cooler')
+      );
+    }
+    if (catSlug === 'air-conditioners') {
+      return (
+        p.category_id === 'c0000001-0000-0000-0000-000000000001' ||
+        catNameLower.includes('ac') ||
+        catNameLower.includes('air conditioner')
+      );
+    }
+
+    return false;
   });
+
+  // Fallback if strict filter yields 0: match by category name or parent
+  if (initialProducts.length === 0) {
+    initialProducts = getMergedProducts().filter(
+      (p) =>
+        p.category_id === category.id ||
+        (category.parent_id && p.category_id === category.parent_id) ||
+        p.product_name.toLowerCase().includes(category.name.toLowerCase().split(' ')[0])
+    );
+  }
 
   const categoryJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
     name: category.name,
     description: category.description,
-    url: `https://tanmayeetechnologies.com/categories/${category.slug}`,
+    url: `https://www.tanmayeetechnologies.com/categories/${category.slug}`,
     mainEntity: {
       '@type': 'ItemList',
       itemListElement: initialProducts.slice(0, 10).map((prod, index) => ({
         '@type': 'ListItem',
         position: index + 1,
-        url: `https://tanmayeetechnologies.com/products/${prod.slug}`,
+        url: `https://www.tanmayeetechnologies.com/products/${prod.slug}`,
         name: prod.product_name,
       })),
     },
@@ -123,19 +199,19 @@ export default async function CategoryPage({ params }: PageProps) {
         '@type': 'ListItem',
         position: 1,
         name: 'Home',
-        item: 'https://tanmayeetechnologies.com',
+        item: 'https://www.tanmayeetechnologies.com',
       },
       {
         '@type': 'ListItem',
         position: 2,
         name: 'Categories',
-        item: 'https://tanmayeetechnologies.com/products',
+        item: 'https://www.tanmayeetechnologies.com/categories',
       },
       {
         '@type': 'ListItem',
         position: 3,
         name: category.name,
-        item: `https://tanmayeetechnologies.com/categories/${category.slug}`,
+        item: `https://www.tanmayeetechnologies.com/categories/${category.slug}`,
       },
     ],
   };

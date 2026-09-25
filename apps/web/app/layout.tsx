@@ -45,12 +45,12 @@ export const metadata: Metadata = {
     'visi coolers Telangana Andhra Pradesh',
     'cold room installation Vizag',
   ],
-  authors: [{ name: 'Tanmayee Technologies', url: 'https://tanmayeetechnologies.com' }],
+  authors: [{ name: 'Tanmayee Technologies', url: 'https://www.tanmayeetechnologies.com' }],
   creator: 'Tanmayee Technologies',
   publisher: 'Tanmayee Technologies Private Limited',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://tanmayeetechnologies.com'),
+  metadataBase: new URL('https://www.tanmayeetechnologies.com'),
   alternates: {
-    canonical: '/',
+    canonical: 'https://www.tanmayeetechnologies.com',
   },
   robots: {
     index: true,
@@ -190,17 +190,17 @@ export default function RootLayout({
   const websiteJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    '@id': 'https://tanmayeetechnologies.com/#website',
+    '@id': 'https://www.tanmayeetechnologies.com/#website',
     name: COMPANY.NAME,
-    url: 'https://tanmayeetechnologies.com',
+    url: 'https://www.tanmayeetechnologies.com',
     publisher: {
-      '@id': 'https://tanmayeetechnologies.com/#organization',
+      '@id': 'https://www.tanmayeetechnologies.com/#organization',
     },
     potentialAction: {
       '@type': 'SearchAction',
       target: {
         '@type': 'EntryPoint',
-        urlTemplate: 'https://tanmayeetechnologies.com/search?q={search_term_string}',
+        urlTemplate: 'https://www.tanmayeetechnologies.com/search?q={search_term_string}',
       },
       'query-input': 'required name=search_term_string',
     },

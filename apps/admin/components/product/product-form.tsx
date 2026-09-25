@@ -7,7 +7,7 @@
 // and SEO metadata with persistent localStorage state.
 // ============================================================================
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -114,6 +114,101 @@ export function ProductForm({ initialData, isEdit = false }: ProductFormProps) {
   const [newGalleryInput, setNewGalleryInput] = useState('');
   const [newFeatureInput, setNewFeatureInput] = useState('');
   const [newAppInput, setNewAppInput] = useState('');
+
+  // Draft Management State
+  const [draftAvailable, setDraftAvailable] = useState<any | null>(null);
+  const [draftSavedTime, setDraftSavedTime] = useState<string | null>(null);
+  const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
+  const isInitialMount = React.useRef(true);
+
+  // Check for unsaved draft on mount
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined' && initialData?.id) {
+        const draftKey = `tt_draft_${initialData.id}`;
+        const savedDraft = localStorage.getItem(draftKey);
+        if (savedDraft) {
+          const parsed = JSON.parse(savedDraft);
+          // Only show banner if draft has changes
+          if (parsed && parsed.product_name) {
+            setDraftAvailable(parsed);
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Error checking for draft:', e);
+    }
+  }, [initialData?.id]);
+
+  // Debounced auto-save draft to localStorage whenever form changes
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    if (savedSuccess) return;
+
+    const timer = setTimeout(() => {
+      try {
+        if (typeof window !== 'undefined' && formData.id) {
+          const draftKey = `tt_draft_${formData.id}`;
+          const draftData = {
+            ...formData,
+            _draftSavedAt: new Date().toISOString(),
+          };
+          localStorage.setItem(draftKey, JSON.stringify(draftData));
+          setDraftSavedTime(new Date().toLocaleTimeString());
+        }
+      } catch (e) {
+        console.error('Error auto-saving draft:', e);
+      }
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [formData, savedSuccess]);
+
+  const handleRestoreDraft = () => {
+    if (draftAvailable) {
+      setFormData(draftAvailable);
+      setDraftSavedTime(new Date(draftAvailable._draftSavedAt || Date.now()).toLocaleTimeString());
+      setDraftAvailable(null);
+    }
+  };
+
+  const handleDiscardDraft = () => {
+    if (typeof window !== 'undefined' && formData.id) {
+      localStorage.removeItem(`tt_draft_${formData.id}`);
+    }
+    setDraftAvailable(null);
+    setDraftSavedTime(null);
+    // Reset to initialData
+    if (initialData) {
+      setFormData({
+        id: initialData.id,
+        product_name: initialData.product_name || '',
+        slug: initialData.slug || '',
+        model_number: initialData.model_number || '',
+        brand_id: initialData.brand_id || SEED_BRANDS[0].id,
+        category_id: initialData.category_id || SEED_CATEGORIES[0].id,
+        status: initialData.status || ProductStatus.PUBLISHED,
+        price_display: initialData.price_display || PriceDisplay.SHOW,
+        base_mrp: initialData.base_mrp || initialData.reference_price || 45000,
+        dealer_price: initialData.dealer_price || initialData.price_range_min || initialData.reference_price || 38000,
+        short_description: initialData.short_description || '',
+        long_description: initialData.long_description || initialData.description || '',
+        features: initialData.features || [],
+        applications: initialData.applications || [],
+        primary_image_url: primaryImg,
+        gallery_urls: galleryImgs,
+        brochure_url: initialData.brochure_url || '',
+        seo_title: initialData.seo_title || '',
+        seo_description: initialData.seo_description || '',
+        attributes: normalizedAttributes,
+        bulk_tiers: initialData.bulk_tiers || [],
+      });
+    }
+  };
 
   const handleTextChange = (field: string, value: any) => {
     setFormData((prev: any) => {
@@ -230,6 +325,7 @@ export function ProductForm({ initialData, isEdit = false }: ProductFormProps) {
     e.preventDefault();
     setIsSaving(true);
     setSavedSuccess(false);
+    setSaveErrorMessage(null);
 
     try {
       // Find Brand & Category Names
@@ -256,7 +352,21 @@ export function ProductForm({ initialData, isEdit = false }: ProductFormProps) {
         updated_at: new Date().toISOString(),
       };
 
-      // Save to localStorage so admin and web apps pick it up immediately
+      // 1. Call server API to persist to custom-products.json and sync to Supabase
+      const res = await fetch('/api/products/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(productPayload),
+      });
+
+      const result = await res.json();
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to save product on server');
+      }
+
+      // 2. Save to localStorage for instant client reactivity across tabs
       if (typeof window !== 'undefined') {
         const stored = localStorage.getItem('tanmayee_custom_products');
         let customProducts: any[] = [];
@@ -275,15 +385,21 @@ export function ProductForm({ initialData, isEdit = false }: ProductFormProps) {
           customProducts.unshift(productPayload);
         }
         localStorage.setItem('tanmayee_custom_products', JSON.stringify(customProducts));
+
+        // 3. Clear draft since changes are successfully saved!
+        localStorage.removeItem(`tt_draft_${productPayload.id}`);
       }
 
+      setDraftAvailable(null);
+      setDraftSavedTime(null);
       setIsSaving(false);
       setSavedSuccess(true);
-      setTimeout(() => {
-        router.push('/products');
-      }, 1000);
-    } catch (err) {
+
+      // Scroll to top to ensure success notification is seen
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err: any) {
       console.error('Error saving product:', err);
+      setSaveErrorMessage(err.message || 'An error occurred while saving product');
       setIsSaving(false);
     }
   };
@@ -310,9 +426,15 @@ export function ProductForm({ initialData, isEdit = false }: ProductFormProps) {
         </div>
 
         <div className="flex items-center gap-3">
+          {draftSavedTime && !savedSuccess && (
+            <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-medium text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+              Draft saved {draftSavedTime}
+            </span>
+          )}
           {savedSuccess && (
             <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl">
-              <CheckCircle2 className="w-4 h-4" /> Saved Successfully!
+              <CheckCircle2 className="w-4 h-4" /> Saved &amp; Synced!
             </span>
           )}
           <Link
@@ -324,13 +446,103 @@ export function ProductForm({ initialData, isEdit = false }: ProductFormProps) {
           <button
             type="submit"
             disabled={isSaving}
-            className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs py-2.5 px-5 rounded-xl shadow transition-all disabled:opacity-50"
+            className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs py-2.5 px-5 rounded-xl shadow transition-all disabled:opacity-50 cursor-pointer"
           >
             <Save className="w-4 h-4" />
-            <span>{isSaving ? 'Saving...' : isEdit ? 'Save Changes' : 'Publish Product'}</span>
+            <span>{isSaving ? 'Saving & Syncing...' : isEdit ? 'Save Changes' : 'Publish Product'}</span>
           </button>
         </div>
       </div>
+
+      {/* Draft Notification Banner */}
+      {draftAvailable && (
+        <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm animate-in fade-in duration-200">
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-amber-100 rounded-xl text-amber-800 shrink-0 mt-0.5">
+              <FileText className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="font-extrabold text-xs text-amber-950">
+                Unsaved Draft Changes Found
+              </h4>
+              <p className="text-xs text-amber-800 mt-0.5">
+                You have previously modified fields for this product (auto-saved on{' '}
+                {new Date(draftAvailable._draftSavedAt || Date.now()).toLocaleTimeString()}{' '}
+                {new Date(draftAvailable._draftSavedAt || Date.now()).toLocaleDateString()}).
+                Would you like to resume from your draft or undo and discard it?
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={handleRestoreDraft}
+              className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-4 py-2 rounded-xl transition-colors shadow-sm cursor-pointer"
+            >
+              Continue from Draft
+            </button>
+            <button
+              type="button"
+              onClick={handleDiscardDraft}
+              className="bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs px-3.5 py-2 rounded-xl transition-colors cursor-pointer"
+            >
+              Undo / Discard Draft
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Save Success Banner */}
+      {savedSuccess && (
+        <div className="bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm animate-in fade-in duration-200">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-emerald-100 rounded-xl text-emerald-800 shrink-0">
+              <CheckCircle2 className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="font-extrabold text-xs text-emerald-950">
+                Changes Saved Permanently!
+              </h4>
+              <p className="text-xs text-emerald-800 mt-0.5">
+                Product details, specifications, and cropped images were saved to the database and synced across the platform.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              href="/products"
+              className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-4 py-2 rounded-xl transition-colors shadow-sm"
+            >
+              Back to Products List
+            </Link>
+            {formData.slug && (
+              <a
+                href={`http://localhost:3000/products/${formData.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-white hover:bg-emerald-100 text-emerald-900 border border-emerald-300 font-bold text-xs px-3.5 py-2 rounded-xl transition-colors inline-flex items-center gap-1.5"
+              >
+                <span>View on Website</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Error Banner */}
+      {saveErrorMessage && (
+        <div className="bg-rose-50 border-2 border-rose-300 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-sm text-rose-900 text-xs font-semibold">
+          <span>Failed to save changes: {saveErrorMessage}</span>
+          <button
+            type="button"
+            onClick={() => setSaveErrorMessage(null)}
+            className="text-rose-700 hover:text-rose-900 text-xs font-bold underline"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {/* Tabs Navigation */}
       <div className="flex items-center gap-2 border-b border-slate-200 overflow-x-auto pb-px">

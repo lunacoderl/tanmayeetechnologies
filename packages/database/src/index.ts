@@ -7,6 +7,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 export * from './seed-data';
 export * from './seed-products';
 export * from './offers-data';
+export * from './product-storage';
 
 let supabaseAdmin: SupabaseClient | null = null;
 let supabasePublic: SupabaseClient | null = null;

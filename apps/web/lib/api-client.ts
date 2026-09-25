@@ -4,7 +4,7 @@
 // ============================================================================
 
 import {
-  SEED_PRODUCTS,
+  getMergedProducts,
   SEED_BRANDS,
   SEED_CATEGORIES,
   SEED_SERVICES,
@@ -54,9 +54,10 @@ export async function fetchFromApi<T>(endpoint: string, options: RequestInit = {
  */
 function getFallbackData<T>(endpoint: string, options: RequestInit): T {
   const path = endpoint.split('?')[0];
+  const allProducts = getMergedProducts();
 
   if (path === '/products' || path === '/public/products') {
-    const published = SEED_PRODUCTS.filter((p) => p.status === ProductStatus.PUBLISHED);
+    const published = allProducts.filter((p) => p.status === ProductStatus.PUBLISHED);
     return {
       success: true,
       data: published,
@@ -66,7 +67,7 @@ function getFallbackData<T>(endpoint: string, options: RequestInit): T {
 
   if (path.startsWith('/products/') || path.startsWith('/public/products/')) {
     const slug = path.replace(/^\/(public\/)?products\//, '');
-    const product = SEED_PRODUCTS.find((p) => p.slug === slug || p.id === slug);
+    const product = allProducts.find((p) => p.slug === slug || p.id === slug);
     return { success: true, data: product } as T;
   }
 
@@ -77,7 +78,7 @@ function getFallbackData<T>(endpoint: string, options: RequestInit): T {
   if (path.startsWith('/categories/') || path.startsWith('/public/categories/')) {
     const slug = path.replace(/^\/(public\/)?categories\//, '');
     const category = SEED_CATEGORIES.find((c) => c.slug === slug || c.id === slug);
-    const products = SEED_PRODUCTS.filter(
+    const products = allProducts.filter(
       (p) => p.category_id === category?.id || p.subcategory_id === category?.id
     );
     const filters = SEED_CATEGORY_ATTRIBUTES.filter((a) => a.category_id === category?.id);
@@ -91,7 +92,7 @@ function getFallbackData<T>(endpoint: string, options: RequestInit): T {
   if (path.startsWith('/brands/') || path.startsWith('/public/brands/')) {
     const slug = path.replace(/^\/(public\/)?brands\//, '');
     const brand = SEED_BRANDS.find((b) => b.slug === slug || b.id === slug);
-    const products = SEED_PRODUCTS.filter((p) => p.brand_id === brand?.id);
+    const products = allProducts.filter((p) => p.brand_id === brand?.id);
     return { success: true, data: { ...brand, products } } as T;
   }
 
