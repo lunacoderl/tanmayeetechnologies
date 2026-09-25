@@ -378,6 +378,16 @@ export function ProductForm({ initialData, isEdit = false }: ProductFormProps) {
         throw new Error(result.error || 'Failed to save product on server');
       }
 
+      // Synchronize form state with returned cloud product (UUID, updated_at, version)
+      if (result.product) {
+        setFormData((prev: any) => ({
+          ...prev,
+          ...result.product,
+          id: result.product.id || prev.id,
+          current_version: result.product.current_version || prev.current_version,
+        }));
+      }
+
       // 2. Save to localStorage for instant client reactivity across tabs
       if (typeof window !== 'undefined') {
         const stored = localStorage.getItem('tanmayee_custom_products');

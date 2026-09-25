@@ -4,6 +4,25 @@ All notable changes and technical implementation milestones are documented in th
 
 ---
 
+## [2026-09-25] - Cloud-First Persistence, Universal Product Resolution & Storefront Images Lightbox
+
+### Fixed & Enhanced
+- **Cloud-First Persistence & Zero Navigation Data Loss (BUG-014)**:
+  - Eliminated Turbopack hot-recompile server restarts caused by local disk writes (`custom-products.json`) in `saveCustomProduct()`; Supabase PostgreSQL is now the single source of truth.
+  - Implemented universal canonical resolver `resolveCanonicalProductId(identifier)` in `packages/database/src/product-storage.ts` that maps UUIDs, slugs, model numbers, and legacy seed IDs (`p0000001-...`) to the authoritative Supabase product UUID.
+  - Built dedicated single-product Next.js Route Handler `apps/admin/app/api/products/[id]/route.ts` with direct cloud `GET` and `PUT` persistence.
+  - Upgraded `apps/admin/app/products/[id]/edit/page.tsx` with direct API hydration and dynamic key generation, eliminating silent fallbacks to hardcoded seed products.
+  - Upgraded `apps/admin/components/product/product-form.tsx` to automatically synchronize local state with returned canonical server products upon save.
+  - Fixed version history query resolution so version snapshots reliably display and rollback for all products.
+- **Storefront Images Box (Lightbox) & Horizontal Gallery Strip (BUG-015)**:
+  - Upgraded `apps/web/app/products/[slug]/product-detail-client.tsx` with an interactive, full-screen Images Box (Lightbox) modal.
+  - Left vertical thumbnail strip smoothly switches the center image on hover (`onMouseEnter`) and opens the high-resolution lightbox on click.
+  - Center showcase box features a zoom-in cursor, click-to-expand behavior, and a floating `"Photos (N)"` / `Maximize2` expand button.
+  - Lightbox modal provides a dark blurred backdrop (`bg-slate-950/95`), responsive brand and model header, photo index counter (`Photo X of Y`), high-resolution center viewer with large glassmorphic chevron buttons, and a bottom horizontal scrollable carousel strip.
+  - Full keyboard accessibility with `Escape` to close, `ArrowLeft` / `ArrowRight` to cycle photos, and background body scroll locking.
+
+---
+
 ## [2026-09-25] - Fix Storefront Live Supabase RLS Sync & Database-Backed Product Version History
 
 ### Fixed & Enhanced

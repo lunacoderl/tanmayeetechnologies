@@ -39,6 +39,9 @@ import {
   CheckCheck,
   Heart,
   Play,
+  Maximize2,
+  ChevronLeft,
+  X,
 } from 'lucide-react';
 import { Product } from '@tanmayee/types';
 import { COMPANY } from '@tanmayee/config';
@@ -148,8 +151,38 @@ export function ProductDetailClient({
   }, [product, isBlueStar, brandName]);
 
   const [activeMediaIndex, setActiveMediaIndex] = useState(0);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
   const activeMedia = mediaList[activeMediaIndex] || mediaList[0];
   const imageUrl = activeMedia?.url || defaultFallbackImage;
+
+  // Keyboard navigation & body scroll lock for Lightbox
+  React.useEffect(() => {
+    if (!isLightboxOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsLightboxOpen(false);
+      if (e.key === 'ArrowLeft') {
+        setLightboxIndex((prev) => (prev > 0 ? prev - 1 : mediaList.length - 1));
+      }
+      if (e.key === 'ArrowRight') {
+        setLightboxIndex((prev) => (prev < mediaList.length - 1 ? prev + 1 : 0));
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isLightboxOpen, mediaList.length]);
+
+  const openLightbox = (index: number) => {
+    setActiveMediaIndex(index);
+    setLightboxIndex(index);
+    setIsLightboxOpen(true);
+  };
 
   // Key spec highlights
   const capacityAttr = product.attributes?.find((a) =>
@@ -265,14 +298,14 @@ export function ProductDetailClient({
                   <button
                     key={idx}
                     type="button"
-                    onClick={() => setActiveMediaIndex(idx)}
+                    onClick={() => openLightbox(idx)}
                     onMouseEnter={() => setActiveMediaIndex(idx)}
-                    className={`relative w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden border-2 transition-all duration-200 shrink-0 group ${
+                    className={`relative w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden border-2 transition-all duration-200 shrink-0 group cursor-pointer ${
                       activeMediaIndex === idx
                         ? 'border-cyan-500 shadow-md ring-2 ring-cyan-400/40 scale-105 bg-white'
                         : 'border-slate-200/90 hover:border-slate-400 opacity-75 hover:opacity-100 hover:scale-102 bg-white'
                     }`}
-                    title={item.title}
+                    title={`Click to open photos box • ${item.title}`}
                     aria-label={`View ${product.product_name} image ${idx + 1}`}
                   >
                     {item.type === 'VIDEO' ? (
@@ -297,9 +330,13 @@ export function ProductDetailClient({
               </div>
             )}
 
-            {/* Showcase Box: Large Active Image or Video Player */}
+            {/* Showcase Box: Large Active Image or Video Player (Clickable to open high-res lightbox) */}
             <div className="flex-1 w-full">
-              <div className="relative aspect-[4/3] bg-gradient-to-b from-slate-50 to-slate-200/70 rounded-3xl border border-slate-200/90 overflow-hidden shadow-lg group">
+              <div
+                onClick={() => openLightbox(activeMediaIndex)}
+                className="cursor-zoom-in relative aspect-[4/3] bg-gradient-to-b from-slate-50 to-slate-200/70 rounded-3xl border border-slate-200/90 overflow-hidden shadow-lg group"
+                title="Click image to expand full-screen photos box"
+              >
                 {activeMedia.type === 'VIDEO' ? (
                   <video
                     src={activeMedia.url}
@@ -341,7 +378,10 @@ export function ProductDetailClient({
                 <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
                   <button
                     type="button"
-                    onClick={handleShare}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleShare();
+                    }}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/95 hover:bg-white text-slate-700 hover:text-cyan-600 text-xs font-bold shadow-lg backdrop-blur-md transition-all hover:scale-105 active:scale-95 border border-slate-200"
                     title="Share this product via WhatsApp, Bluetooth, Social Media or Copy Link"
                     aria-label="Share product"
@@ -362,7 +402,7 @@ export function ProductDetailClient({
 
                 {/* Bottom Capacity & Exact Model Number Pill */}
                 {(capacityAttr || product.model_number) && (
-                  <div className="absolute bottom-4 left-4 right-4 flex items-center z-10 pointer-events-none">
+                  <div className="absolute bottom-4 left-4 flex items-center z-10 pointer-events-none">
                     <span className="inline-flex items-center gap-2 bg-slate-950/90 backdrop-blur-md text-white text-xs font-bold px-3.5 py-2 rounded-2xl border border-white/20 shadow-xl">
                       {capacityAttr && (
                         <span className="text-cyan-300 font-black">{capacityAttr.value}</span>
@@ -374,6 +414,20 @@ export function ProductDetailClient({
                     </span>
                   </div>
                 )}
+
+                {/* Fullscreen Lightbox Trigger Button */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openLightbox(activeMediaIndex);
+                  }}
+                  className="absolute bottom-4 right-4 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-950/85 hover:bg-slate-950 text-white text-xs font-bold backdrop-blur-md transition-all shadow-xl hover:scale-105 border border-white/20 group-hover:border-cyan-400/50"
+                  title="Click to view all photos in high-resolution lightbox box"
+                >
+                  <Maximize2 className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Photos ({mediaList.length})</span>
+                </button>
               </div>
             </div>
           </div>
@@ -816,6 +870,152 @@ export function ProductDetailClient({
           subtitle="Smart equipment recommendations matched to your requirements and cooling load"
         />
       </div>
+
+      {/* ── High-End Full-Screen Images Box (Lightbox) ── */}
+      {isLightboxOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex flex-col justify-between bg-slate-950/95 backdrop-blur-2xl text-white select-none animate-in fade-in duration-200"
+          onClick={() => setIsLightboxOpen(false)}
+        >
+          {/* Top Bar */}
+          <div
+            className="flex items-center justify-between px-6 py-4 border-b border-white/10 shrink-0 z-10 bg-slate-950/60 backdrop-blur-md"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <span
+                className={`text-[11px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shrink-0 shadow ${
+                  isBlueStar
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-emerald-600 text-white'
+                }`}
+              >
+                {brandName}
+              </span>
+              <h2 className="text-sm md:text-base font-bold text-slate-100 truncate">
+                {product.product_name}
+              </h2>
+              {product.model_number && (
+                <span className="hidden sm:inline-block font-mono text-xs text-slate-400 bg-white/10 px-2 py-0.5 rounded shrink-0">
+                  {product.model_number}
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-3 shrink-0">
+              <span className="text-xs font-semibold text-slate-300 bg-white/10 px-3 py-1 rounded-full">
+                Photo {lightboxIndex + 1} of {mediaList.length}
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsLightboxOpen(false)}
+                className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white hover:text-rose-400 transition-colors cursor-pointer"
+                title="Close (Esc)"
+                aria-label="Close image viewer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Center Stage: Viewport with Prev / Next Buttons */}
+          <div
+            className="relative flex-1 flex items-center justify-center p-4 md:p-8 overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Prev Button */}
+            {mediaList.length > 1 && (
+              <button
+                type="button"
+                onClick={() => setLightboxIndex((prev) => (prev > 0 ? prev - 1 : mediaList.length - 1))}
+                className="absolute left-4 md:left-8 z-20 p-3 rounded-full bg-slate-900/80 hover:bg-cyan-600 text-white border border-white/20 transition-all hover:scale-110 active:scale-95 shadow-2xl backdrop-blur-md cursor-pointer"
+                title="Previous Image (Left Arrow)"
+                aria-label="Previous photo"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+            )}
+
+            {/* Main Stage Media */}
+            <div className="relative max-w-4xl max-h-[64vh] w-full h-full flex items-center justify-center">
+              {mediaList[lightboxIndex]?.type === 'VIDEO' ? (
+                <video
+                  src={mediaList[lightboxIndex].url}
+                  controls
+                  autoPlay
+                  playsInline
+                  className="max-h-[64vh] max-w-full rounded-2xl object-contain shadow-2xl bg-black"
+                />
+              ) : (
+                <img
+                  src={mediaList[lightboxIndex]?.url}
+                  alt={mediaList[lightboxIndex]?.alt || product.product_name}
+                  className="max-h-[64vh] max-w-full rounded-2xl object-contain shadow-2xl transition-all duration-300"
+                />
+              )}
+            </div>
+
+            {/* Next Button */}
+            {mediaList.length > 1 && (
+              <button
+                type="button"
+                onClick={() => setLightboxIndex((prev) => (prev < mediaList.length - 1 ? prev + 1 : 0))}
+                className="absolute right-4 md:right-8 z-20 p-3 rounded-full bg-slate-900/80 hover:bg-cyan-600 text-white border border-white/20 transition-all hover:scale-110 active:scale-95 shadow-2xl backdrop-blur-md cursor-pointer"
+                title="Next Image (Right Arrow)"
+                aria-label="Next photo"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            )}
+          </div>
+
+          {/* Bottom Horizontal Scrollable Carousel Strip */}
+          <div
+            className="w-full bg-slate-950/90 border-t border-white/10 px-4 py-3 shrink-0"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="max-w-4xl mx-auto">
+              <div className="flex items-center justify-between text-xs text-slate-400 mb-2 px-1">
+                <span className="font-semibold text-slate-300">All Available Views — Scroll Horizontally</span>
+                <span className="text-[11px] text-slate-500 hidden sm:inline">Use Left/Right arrow keys to navigate</span>
+              </div>
+              <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-white/20">
+                {mediaList.map((item, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => {
+                      setLightboxIndex(idx);
+                      setActiveMediaIndex(idx);
+                    }}
+                    className={`relative w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden shrink-0 border-2 transition-all duration-200 bg-white cursor-pointer ${
+                      lightboxIndex === idx
+                        ? 'border-cyan-400 ring-2 ring-cyan-400/50 scale-105 shadow-lg shadow-cyan-500/30'
+                        : 'border-white/20 opacity-60 hover:opacity-100 hover:border-white/50'
+                    }`}
+                    title={item.title}
+                  >
+                    {item.type === 'VIDEO' ? (
+                      <div className="w-full h-full bg-slate-900 flex flex-col items-center justify-center text-white">
+                        <Play className="w-4 h-4 fill-white text-white" />
+                        <span className="text-[7px] font-bold uppercase text-cyan-300">Video</span>
+                      </div>
+                    ) : (
+                      <img
+                        src={item.url}
+                        alt={item.alt}
+                        className="w-full h-full object-contain p-1"
+                      />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

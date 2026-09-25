@@ -1,8 +1,39 @@
-# Current Task: Multi-Image Drag-and-Drop Batch Upload, Live Supabase Two-Way Sync, Vertical Media Gallery, Image SEO & Sitemap
+# Current Task: Cloud-First Catalog Persistence, Universal Product ID Resolution, and Storefront Images Box (Lightbox)
 
 **Status:** COMPLETED  
 **Assignee:** Antigravity AI Agent  
-**Goal:** Fix the admin media dropzone bug where multiple dropped images were processed but only the last image was saved; build real-time two-way synchronization between deployed admin, localhost admin, and public storefronts using Supabase Postgres; add a left-side vertically aligned product detail media gallery supporting both images and video playback with hover and click switching; and implement Google Image Search SEO and dynamic canonical sitemap.
+**Goal:** Transition the platform to a pure cloud-first single source of truth (Supabase Postgres) without local disk overwrites, eliminate product editing and specification loss across admin page navigation by resolving legacy seed IDs to canonical Supabase UUIDs, ensure reliable version history lookup and rollback, and implement a high-end full-screen Images Box (Lightbox) on the public storefront with horizontal thumbnail scrolling.
+
+---
+
+## Task Checklist
+
+- [x] **Pure Cloud-First Persistence (No Local Disk Overwrites):**
+  - Removed `node.fs.writeFileSync` to `custom-products.json` in `packages/database/src/product-storage.ts`, eliminating Next.js / Turbopack hot-reload crashes and server recompilations during product saves.
+  - Ensured in-memory caches are immediately cleared (`lastSupabaseFetchTime = 0`) upon saving to guarantee instant cloud data freshness.
+- [x] **Universal Product Identifier Resolver:**
+  - Implemented `resolveCanonicalProductId(identifier)` in `packages/database/src/product-storage.ts` to map UUIDs, slugs, model numbers, and legacy seed IDs (`p0000001-...`) to canonical Supabase UUIDs.
+  - Implemented `fetchSingleProduct(identifier)` to retrieve a fully normalized product with live media and attributes directly from Supabase.
+- [x] **Dedicated Single-Product API Route:**
+  - Created `apps/admin/app/api/products/[id]/route.ts` supporting `GET` (direct cloud fetch) and `PUT` (direct cloud update).
+- [x] **Zero-Loss Admin Product Edit Navigation:**
+  - Rewrote `apps/admin/app/products/[id]/edit/page.tsx` to fetch directly from `/api/products/${id}`. Eliminated fallback to `SEED_PRODUCTS[0]` and added a loading state until live cloud data is ready.
+  - Synchronized form state on save in `apps/admin/components/product/product-form.tsx` with server-returned UUID and version number.
+  - Added cache-busting timestamp query parameters (`?t=${Date.now()}`) and `{ cache: 'no-store' }` to `apps/admin/app/products/page.tsx` to prevent stale HTTP caching.
+- [x] **Robust Product Version History Resolution:**
+  - Fixed `fetchProductVersions(productIdOrSlug)` and `restoreProductVersion()` to resolve canonical UUIDs before querying Supabase `product_versions`.
+  - Tested lifecycle end-to-end: verified saving increments version number, records snapshots, and updates product in Supabase.
+- [x] **Full-Screen Storefront Images Box (Lightbox):**
+  - Upgraded `apps/web/app/products/[slug]/product-detail-client.tsx`:
+    - Smooth hover on vertical thumbnails dynamically switches the center showcase view.
+    - Clicking on any thumbnail or the center showcase image opens the full-screen Images Box (Lightbox).
+    - Added an explicit `"Photos (N)"` / `Maximize2` expand button to the main showcase image.
+    - Implemented modal with top bar (brand, model, photo counter, close button), center viewport with previous/next controls, and a bottom horizontal scrollable carousel strip with active highlight rings.
+    - Added global keyboard navigation (`Escape`, `ArrowLeft`, `ArrowRight`) and body scroll lock.
+- [x] **Verification & Monorepo Health Check:**
+  - Turbo typecheck executed across all packages: `@tanmayee/admin`, `@tanmayee/web`, `@tanmayee/api`, `@tanmayee/config`: **4/4 passed (0 errors)**.
+  - Successfully verified `/api/products/[id]`, `/api/products/[id]/versions`, and web storefront `/products/[slug]`.
+
 
 ---
 

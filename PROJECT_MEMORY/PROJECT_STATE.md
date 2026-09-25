@@ -1,7 +1,7 @@
 # Project State: Tanmayee Technologies Platform
 
-**Last Updated:** 2026-09-25 22:15 IST  
-**Status:** **Completed & Verified** — Resolved Storefront Supabase RLS anonymous key block, fully enabled real-time synchronization between Admin edits and Web Storefront, and implemented complete database-backed Product Version History with instant one-click rollback in `apps/admin`.  
+**Last Updated:** 2026-09-25 22:50 IST  
+**Status:** **Completed & Verified** — Cloud-First Persistence (Zero Edit Data Loss across Navigation), Universal Canonical Product Resolver, Supabase-backed Version History & Rollback, and Storefront Full-Screen Images Box (Lightbox) with Horizontal Thumbnail Strip.  
 **Environment:** Local Development + Supabase Postgres Integration + Apify Cloud Integration (Actor ID: `IQiZE0gndS4uaVfUp`)
 
 ---
@@ -18,11 +18,11 @@
 - **Service Options:** In-Store Shopping, In-Store Pickup, Delivery
 
 The platform consists of:
-1. **Web Storefront (`apps/web`)**: Next.js App Router application showcasing 155 commercial cooling products, brand filtering (Blue Star & Rockwell), category filtering, cart & bulk quote generation ("Quotatio"). Features animated floating right-corner CTAs (Call, WhatsApp, Quotatio, Scroll-to-Top), Web Share API integration on cards and detail pages, vibrant specs with icons, and `schema.org/Product` JSON-LD rich snippets. Running on `http://localhost:3000`.
-2. **Admin Portal (`apps/admin`)**: Next.js App Router management portal with zero mock data. Contains live 155-product catalog metrics, authentic Visakhapatnam regional quotation & service records, and a full **Offers & Promotions Studio** at `/offers` allowing admin to create, edit, delete, and toggle permanent or time-limited commercial discount rules. Running on `http://localhost:3001`.
+1. **Web Storefront (`apps/web`)**: Next.js App Router application showcasing 155 commercial cooling products, brand filtering (Blue Star & Rockwell), category filtering, cart & bulk quote generation ("Quotatio"). Features animated floating right-corner CTAs (Call, WhatsApp, Quotatio, Scroll-to-Top), Web Share API integration on cards and detail pages, vibrant specs with icons, interactive hover-to-switch product photography, and a full-screen Images Box (Lightbox) modal with horizontal thumbnail scrolling and keyboard controls. Running on `http://localhost:3000`.
+2. **Admin Portal (`apps/admin`)**: Next.js App Router management portal with zero mock data. Contains live 155-product catalog metrics, single-product API endpoint with universal canonical ID resolution (`/api/products/[id]`), zero navigation data loss, authentic Visakhapatnam regional quotation & service records, and a full **Offers & Promotions Studio** at `/offers` allowing admin to create, edit, delete, and toggle permanent or time-limited commercial discount rules. Running on `http://localhost:3001`.
 3. **Product Catalog Apify Actor (`actors/product-catalog-actor`)**: Specialized Playwright + Node.js web-scraping actor deployed to Apify Cloud (`tanmayee-catalog-actor`, Actor ID `IQiZE0gndS4uaVfUp`), designed to crawl and extract verified catalog data, technical specifications, and authentic CDN images for 155 commercial models.
 4. **Shared Packages (`packages/*`)**:
-   - `@tanmayee/database`: Seed catalog fallback (155 products), initial commercial offers, Supabase client factory, EAV attribute mapping.
+   - `@tanmayee/database`: Cloud-first Supabase persistence, universal canonical product resolver, in-memory caching (zero disruptive local disk writes), seed catalog fallback (155 products), initial commercial offers, Supabase client factory, EAV attribute mapping.
    - `@tanmayee/types`: TypeScript definitions for products, brands, categories, quotes, orders, offers.
    - `@tanmayee/config`: System constants, statuses, company profile, price display modes.
 
@@ -46,8 +46,8 @@ The platform consists of:
 
 | Service / Component | Status | Port / Target | Details |
 | :--- | :--- | :--- | :--- |
-| Storefront (`apps/web`) | **Active** | `http://localhost:3000` | HTTP 200, direct Supabase service-role sync bypassing RLS, left vertical media gallery with hover/click & video, Image SEO schema, canonical sitemap |
-| Admin Portal (`apps/admin`) | **Active** | `http://localhost:3001` | HTTP 200, zero mock data, multi-image batch dropzone upload, live Supabase product & media persistence, dynamic Product Version History modal with 1-click restore |
+| Storefront (`apps/web`) | **Active** | `http://localhost:3000` | HTTP 200, direct Supabase service-role sync bypassing RLS, left vertical media gallery with hover/click, full-screen Images Box (Lightbox) modal with keyboard navigation & horizontal thumbnail carousel, Image SEO schema, canonical sitemap |
+| Admin Portal (`apps/admin`) | **Active** | `http://localhost:3001` | HTTP 200, zero mock data, multi-image batch dropzone upload, direct cloud single-product API (`/api/products/[id]`), universal canonical ID resolution, zero navigation data loss, live Supabase product & media persistence, dynamic Product Version History modal with 1-click restore |
 | Apify Actor | **Deployed & Ready** | Apify Cloud ID `IQiZE0gndS4uaVfUp` | Token configured, build succeeded |
-| Database (`packages/database`) | **Synchronized** | Supabase Postgres + Local fallback | Live bidirectional sync for products, `product_media`, `product_attributes`, `product_versions` snapshots, and commercial offers |
+| Database (`packages/database`) | **Synchronized** | Supabase Postgres + Local fallback | Live bidirectional sync for products, `product_media`, `product_attributes`, `product_versions` snapshots, and commercial offers, with in-memory caching and zero disruptive disk writes |
 

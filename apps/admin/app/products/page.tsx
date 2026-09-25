@@ -40,7 +40,7 @@ export default function AdminProductsPage() {
     let isMounted = true;
     async function loadLiveProducts() {
       try {
-        const res = await fetch('/api/products');
+        const res = await fetch(`/api/products?t=${Date.now()}`, { cache: 'no-store' });
         if (res.ok) {
           const json = await res.json();
           if (isMounted && json.products && Array.isArray(json.products) && json.products.length > 0) {
@@ -143,14 +143,14 @@ export default function AdminProductsPage() {
       });
 
       // Reload products list
-      const updatedRes = await fetch('/api/products');
+      const updatedRes = await fetch(`/api/products?t=${Date.now()}`, { cache: 'no-store' });
       if (updatedRes.ok) {
         const uJson = await updatedRes.json();
         if (uJson.products) setProducts(uJson.products);
       }
 
       // Refresh versions list
-      const vRes = await fetch(`/api/products/${selectedVersionProduct.id}/versions`);
+      const vRes = await fetch(`/api/products/${selectedVersionProduct.id}/versions?t=${Date.now()}`, { cache: 'no-store' });
       if (vRes.ok) {
         const vJson = await vRes.json();
         if (vJson.versions) setProductVersions(vJson.versions);

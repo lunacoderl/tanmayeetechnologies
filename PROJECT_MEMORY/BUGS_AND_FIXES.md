@@ -163,3 +163,37 @@
   3. Created `apps/admin/app/api/products/[id]/versions/route.ts` with `GET` (returns live versions array) and `POST` (executes atomic rollback to any past snapshot).
   4. Rewrote the Version History Modal in `apps/admin/app/products/page.tsx` with dynamic fetching, live version badges (`CURRENT ACTIVE` vs `Archived Snapshot`), formatted timestamps, image thumbnail previews, and a real one-click Restore button with feedback toasts.
 - **Status:** **RESOLVED**
+
+---
+
+## BUG-014: Admin Product Edit Loss Across Navigation Due to Legacy Seed ID Mismatch and Disk Overwrites
+- **Error:** After editing a product's name, specifications, or images in Admin and saving, leaving the edit page and returning caused all changes to vanish, reverting to the initial unedited catalog specifications and showing empty version history.
+- **Root Cause:**
+  1. `apps/admin/app/products/[id]/edit/page.tsx` was initialized with `getMergedProducts()` using synthetic legacy seed IDs (`p0000001-...`). When `/api/products` was fetched, `find(p => p.id === id || p.slug === id)` failed because Supabase products use canonical UUIDs (`00000000-0000-...`).
+  2. Because the match failed, the form silently fell back to the hardcoded `SEED_PRODUCTS[0]` (Rockwell GFR250), discarding the user's modifications from the form view.
+  3. `saveCustomProduct()` was executing `node.fs.writeFileSync` to write `custom-products.json` into the monorepo source tree during development. This triggered Next.js/Turbopack file-watch recompilations, invalidating in-memory states and restarting dev server contexts.
+  4. `fetchProductVersions(productIdOrSlug)` was checking if the identifier started with `'p'` and attempting a direct slug query on Supabase with the legacy seed ID, which failed to find the product row and resulted in 0 version snapshots.
+- **Fix:**
+  1. Implemented `resolveCanonicalProductId(identifier)` in `packages/database/src/product-storage.ts`, resolving UUIDs, slugs, model numbers, and legacy seed IDs to the canonical Supabase product UUID.
+  2. Created dedicated single-product endpoint `apps/admin/app/api/products/[id]/route.ts` with direct cloud `GET` and `PUT` handlers.
+  3. Rewrote `apps/admin/app/products/[id]/edit/page.tsx` to fetch directly from `/api/products/${id}` with a sleek loading state and zero fallback to hardcoded seed items.
+  4. Removed local disk writes (`node.fs.writeFileSync`) from `saveCustomProduct()`, making Supabase PostgreSQL the sole authoritative source of truth.
+  5. Synchronized form state on save in `apps/admin/components/product/product-form.tsx` with the updated server product and incremented version number.
+- **Status:** **RESOLVED**
+
+---
+
+## BUG-015: Missing Storefront Product Images Box (Lightbox) & Horizontal Thumbnail Scrolling
+- **Error:** On the public storefront product detail page (`apps/web`), clicking the center product image or thumbnails did not open a viewer box, and users had no way to expand photos into a full-screen view or scroll horizontally through all available angles.
+- **Root Cause:**
+  1. `apps/web/app/products/[slug]/product-detail-client.tsx` rendered the center showcase image without a click event handler or modal dialog.
+  2. The left thumbnail column was purely vertical and lacked a full-screen lightbox companion with horizontal scrolling for clear, high-resolution viewing.
+- **Fix:**
+  1. Added `isLightboxOpen` state, `lightboxIndex`, and global keyboard listeners (`Escape`, `ArrowLeft`, `ArrowRight`, with body scroll lock) to `ProductDetailClient`.
+  2. Made both the left thumbnail items and the main showcase image clickable, opening the full-screen Images Box. Added an explicit `"Photos (N)"` / `Maximize2` expand button on the showcase image.
+  3. Implemented the full-screen Images Box modal featuring:
+     - Top navigation bar with brand badge, product title, exact model number, photo counter (`Photo X of Y`), and close (`X`) button.
+     - Center high-resolution stage with large previous (`<`) and next (`>`) glassmorphic controls, supporting both high-res imagery and video playback.
+     - Bottom horizontal scrollable thumbnail strip with glowing active indicators, allowing users to scroll horizontally and click to inspect all available views clearly.
+- **Status:** **RESOLVED**
+
