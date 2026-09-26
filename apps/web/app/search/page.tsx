@@ -20,8 +20,30 @@ function SearchContent() {
     setQuery(initialQuery);
   }, [initialQuery]);
 
+  const [allProducts, setAllProducts] = useState(getMergedProducts());
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadLiveProducts() {
+      try {
+        const res = await fetch(`/api/products?t=${Date.now()}`, { cache: 'no-store' });
+        if (res.ok) {
+          const json = await res.json();
+          if (isMounted && json.products && Array.isArray(json.products) && json.products.length > 0) {
+            setAllProducts(json.products);
+          }
+        }
+      } catch (e) {
+        // Fall back to local
+      }
+    }
+    loadLiveProducts();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const q = query.trim().toLowerCase();
-  const allProducts = getMergedProducts();
 
   const matchingProducts = q
     ? allProducts.filter(

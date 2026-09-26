@@ -197,3 +197,23 @@
      - Bottom horizontal scrollable thumbnail strip with glowing active indicators, allowing users to scroll horizontally and click to inspect all available views clearly.
 - **Status:** **RESOLVED**
 
+---
+
+## BUG-016: Product Cards Showing Old Deleted Primary Image Due to Client Seed Initialization & Stale Fallback Precedence
+- **Error:** Product detail pages (`/products/[slug]`) correctly displayed newly uploaded images and the user-selected primary image, but product cards across the public storefront (`/products`, `/brands/[slug]`, `/search`, Recommended Products, Header Search dropdown) continued to display the old deleted primary image (specifically hardcoded seed images such as `ic518vnurav_gallery-images-01_2_4.png`).
+- **Root Cause:**
+  1. `apps/web/app/products/page.tsx` was a client component initialized with `useState(getMergedProducts())`. Next.js SSR rendered the page with static seed products on the server, baking old seed images into HTML, while client-side `fetch('/api/products')` lacked `cache: 'no-store'` headers.
+  2. `apps/web/app/brands/[slug]/page.tsx` called `getMergedProducts().filter(...)` instead of `await fetchLiveProductsFromSupabase()`, forcing all product cards on brand pages to render old seed images.
+  3. `apps/web/app/search/page.tsx`, `apps/web/components/layout/header.tsx`, and `apps/web/lib/user-store-context.tsx` all called `getMergedProducts()`, causing search and recommendations to render old seed images.
+  4. In `packages/database/src/product-storage.ts`, `mapDbProductToUnified(row)` defaulted `isPrimary = m.is_primary || m.type === 'MAIN_IMAGE' || i === 0`, causing the first item returned from Postgres (which was not guaranteed to be ordered) to be assumed primary rather than strictly searching for the database record with `is_primary === true`.
+  5. In `apps/web/components/product/product-card.tsx`, `imageUrl` was checking `(product as any).primary_image_url` before `product.media?.find(m => m.is_primary)?.url`. When `primary_image_url` was an old deleted seed URL, it took precedence over the user's uploaded images.
+- **Fix:**
+  1. Upgraded `apps/web/app/products/page.tsx` into a Server Component with `export const dynamic = 'force-dynamic'` and `export const revalidate = 0` that fetches `await fetchLiveProductsFromSupabase()` and delegates to `<ProductsClient initialProducts={products} />`.
+  2. Upgraded `apps/web/app/brands/[slug]/page.tsx`, `apps/web/app/categories/[slug]/page.tsx`, and `apps/web/app/products/[slug]/page.tsx` with `export const dynamic = 'force-dynamic'` and `fetchLiveProductsFromSupabase()`.
+  3. Added non-cached live Supabase fetching with `{ cache: 'no-store' }` to `apps/web/app/search/page.tsx`, `apps/web/components/layout/header.tsx`, and `apps/web/lib/user-store-context.tsx`.
+  4. Added explicit `Cache-Control: no-store, no-cache, must-revalidate` headers to `apps/web/app/api/products/route.ts`.
+  5. In `packages/database/src/product-storage.ts`, `mapDbProductToUnified` strictly searches for `is_primary || type === 'MAIN_IMAGE'` before falling back to `sortedMedia[0]`. Furthermore, `getMergedProducts()` returns live custom products directly when loaded from Supabase.
+  6. In `apps/web/components/product/product-card.tsx` and `recommended-products.tsx`, hardened image resolution to prioritize `product.media?.find(m => m.is_primary)?.url`, validate `primary_image_url` against the actual media list (rejecting deleted URLs), and fall back to `media[0]` so old deleted images never leak.
+  7. Audited user-edited live products from Supabase and verified that 0% of cards leak old seed images, and all 8 monorepo packages pass `turbo typecheck` with 0 errors.
+- **Status:** **RESOLVED**
+

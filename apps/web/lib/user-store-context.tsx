@@ -55,6 +55,30 @@ export function UserStoreProvider({ children }: { children: React.ReactNode }) {
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
+  const [liveProducts, setLiveProducts] = useState<Product[]>([]);
+
+  // Fetch live Supabase products
+  useEffect(() => {
+    let isMounted = true;
+    async function loadLiveProducts() {
+      try {
+        const res = await fetch(`/api/products?t=${Date.now()}`, { cache: 'no-store' });
+        if (res.ok) {
+          const json = await res.json();
+          if (isMounted && json.products && Array.isArray(json.products) && json.products.length > 0) {
+            setLiveProducts(json.products);
+          }
+        }
+      } catch {
+        // Fall back to getMergedProducts
+      }
+    }
+    loadLiveProducts();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   // Initialize from localStorage
   useEffect(() => {
     try {
@@ -144,7 +168,7 @@ export function UserStoreProvider({ children }: { children: React.ReactNode }) {
   // Recommendation Engine
   const getRecommendedProducts = useCallback(
     (limit = 4, excludeIds: string[] = []): Product[] => {
-      const allProducts = getMergedProducts() as Product[];
+      const allProducts = (liveProducts && liveProducts.length > 0) ? liveProducts : (getMergedProducts() as Product[]);
       const excludeSet = new Set(excludeIds);
 
       // Score products based on user interactions

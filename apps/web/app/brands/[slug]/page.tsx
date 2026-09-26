@@ -6,8 +6,11 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { SEED_BRANDS, getMergedProducts } from '@tanmayee/database';
+import { SEED_BRANDS, fetchLiveProductsFromSupabase } from '@tanmayee/database';
 import { BrandClient } from './brand-client';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -70,11 +73,12 @@ export default async function BrandPage({ params }: PageProps) {
     notFound();
   }
 
-  const products = getMergedProducts().filter(
+  const allProducts = await fetchLiveProductsFromSupabase();
+  const products = allProducts.filter(
     (p) =>
       p.brand_id === brand.id ||
-      (brand.slug === 'rockwell' && p.brand_name.toLowerCase().includes('rockwell')) ||
-      (brand.slug === 'blue-star' && p.brand_name.toLowerCase().includes('blue star'))
+      (brand.slug === 'rockwell' && (p.brand_name || '').toLowerCase().includes('rockwell')) ||
+      (brand.slug === 'blue-star' && (p.brand_name || '').toLowerCase().includes('blue star'))
   );
 
   const brandJsonLd = {

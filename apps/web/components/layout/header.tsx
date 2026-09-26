@@ -56,6 +56,29 @@ export function Header() {
   const [matchingCategories, setMatchingCategories] = useState<any[]>([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [liveProducts, setLiveProducts] = useState<any[]>([]);
+
+  // Load live Supabase products for instant header search
+  useEffect(() => {
+    let isMounted = true;
+    async function loadLiveProducts() {
+      try {
+        const res = await fetch(`/api/products?t=${Date.now()}`, { cache: 'no-store' });
+        if (res.ok) {
+          const json = await res.json();
+          if (isMounted && json.products && Array.isArray(json.products) && json.products.length > 0) {
+            setLiveProducts(json.products);
+          }
+        }
+      } catch {
+        // Fall back to getMergedProducts
+      }
+    }
+    loadLiveProducts();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Dropdown states
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -120,7 +143,8 @@ export function Header() {
     }
 
     // 1. Filter Products (Matches name, model number, sku, brand, category, capacity)
-    const filteredProducts = (getMergedProducts() as any[]).filter((p) => {
+    const catalog = (liveProducts && liveProducts.length > 0 ? liveProducts : getMergedProducts()) as any[];
+    const filteredProducts = catalog.filter((p) => {
       const name = (p.product_name || '').toLowerCase();
       const model = (p.model_number || '').toLowerCase();
       const sku = (p.sku || '').toLowerCase();
@@ -351,7 +375,13 @@ export function Header() {
                                 {/* Thumbnail */}
                                 <div className="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 p-1 flex items-center justify-center shrink-0 overflow-hidden">
                                   <img
-                                    src={p.media?.[0]?.url || '/images/categories/air-conditioners.jpg'}
+                                    src={
+                                      p.media?.find((m: any) => m.is_primary)?.url ||
+                                      p.primary_image_url ||
+                                      p.media?.[0]?.url ||
+                                      (Array.isArray(p.gallery_urls) && p.gallery_urls.length > 0 ? p.gallery_urls[0] : null) ||
+                                      '/images/categories/air-conditioners.jpg'
+                                    }
                                     alt={p.product_name}
                                     className="w-full h-full object-contain"
                                   />

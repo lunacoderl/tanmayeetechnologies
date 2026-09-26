@@ -1,12 +1,32 @@
-# Current Task: Cloud-First Catalog Persistence, Universal Product ID Resolution, and Storefront Images Box (Lightbox)
+# Current Task: Storefront Product Card Live Primary Image Resolution & Seed Elimination (BUG-016)
 
 **Status:** COMPLETED  
 **Assignee:** Antigravity AI Agent  
-**Goal:** Transition the platform to a pure cloud-first single source of truth (Supabase Postgres) without local disk overwrites, eliminate product editing and specification loss across admin page navigation by resolving legacy seed IDs to canonical Supabase UUIDs, ensure reliable version history lookup and rollback, and implement a high-end full-screen Images Box (Lightbox) on the public storefront with horizontal thumbnail scrolling.
+**Goal:** Eliminate stale hardcoded seed images appearing on product cards across the public website (`/products`, `/brands/[slug]`, `/categories/[slug]`, `/search`, Recommended Products, Header Search dropdown), ensure user-designated primary images from Supabase live database render across all product cards without touching or risking user data (10+ images uploaded per product up to 151 products), and ensure zero cache leakage.
 
 ---
 
 ## Task Checklist
+
+- [x] **Root Cause Diagnosis**:
+  - Found that `apps/web/app/products/page.tsx` was a client component initialized with `useState(getMergedProducts())`. Next.js SSR rendered static seed products from `SEED_PRODUCTS`, baking old seed images into HTML, while client `/api/products` was cached.
+  - Found that `apps/web/app/brands/[slug]/page.tsx` called `getMergedProducts()`, forcing all brand page product cards to render hardcoded seed items.
+  - Found that `apps/web/app/search/page.tsx`, `apps/web/components/layout/header.tsx`, and `apps/web/lib/user-store-context.tsx` all called `getMergedProducts()`.
+  - Found that `mapDbProductToUnified()` in `packages/database/src/product-storage.ts` defaulted `isPrimary = m.is_primary || m.type === 'MAIN_IMAGE' || i === 0` rather than explicitly searching for `is_primary === true`.
+  - Found that `apps/web/components/product/product-card.tsx` evaluated `(product as any).primary_image_url` before `product.media?.find(m => m.is_primary)?.url`.
+- [x] **Storefront Dynamic Server Component Migration**:
+  - Converted `apps/web/app/products/page.tsx` to a Server Component with `export const dynamic = 'force-dynamic'` and `export const revalidate = 0` that fetches `await fetchLiveProductsFromSupabase()` and passes them to `<ProductsClient />`.
+  - Upgraded `apps/web/app/brands/[slug]/page.tsx` to fetch `await fetchLiveProductsFromSupabase()`.
+  - Added `dynamic = 'force-dynamic'` and `revalidate = 0` to `apps/web/app/categories/[slug]/page.tsx` and `apps/web/app/products/[slug]/page.tsx`.
+- [x] **Client-Side Live Synchronizations & Cache Elimination**:
+  - Added non-cached live fetch (`{ cache: 'no-store' }`) to `apps/web/app/search/page.tsx`, `apps/web/components/layout/header.tsx`, and `apps/web/lib/user-store-context.tsx`.
+  - Added explicit `Cache-Control: no-store, no-cache, must-revalidate` headers to `apps/web/app/api/products/route.ts`.
+- [x] **Hardened Product Card & Drawer Image Resolution**:
+  - Hardened `apps/web/components/product/product-card.tsx` and `recommended-products.tsx` to prioritize `product.media?.find(m => m.is_primary)?.url`, validate `primary_image_url` against the active media list (rejecting deleted seed URLs), and fall back to `media[0]`.
+- [x] **Preserved User Data & Monorepo Health**:
+  - 100% of user-uploaded images and database records in Supabase remained completely intact.
+  - Ran live database audit: verified 0% seed image leakage across user-edited products.
+  - Ran `npx turbo typecheck`: 4/4 packages passed with 0 errors.
 
 - [x] **Pure Cloud-First Persistence (No Local Disk Overwrites):**
   - Removed `node.fs.writeFileSync` to `custom-products.json` in `packages/database/src/product-storage.ts`, eliminating Next.js / Turbopack hot-reload crashes and server recompilations during product saves.

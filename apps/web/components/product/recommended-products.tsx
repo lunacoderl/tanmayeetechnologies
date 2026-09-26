@@ -66,9 +66,19 @@ export function RecommendedProducts({
         <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
           {recommended.map((product) => {
             const isBlueStar = product.brand_id?.includes('blue-star') || product.slug.includes('blue-star');
-            const imgUrl = (product as any).media?.[0]?.url || (isBlueStar
-              ? 'https://cdn.shopify.com/s/files/1/0888/8297/0937/files/ic518vnurav_gallery-images-01_2_4.png'
-              : 'https://cdn.shopify.com/s/files/1/0701/1929/3028/files/SFR250.png?v=1763989056');
+            const primaryMedia = (product as any).media?.find((m: any) => m.is_primary)?.url;
+            const primaryField = (product as any).primary_image_url;
+            const firstMedia = (product as any).media?.[0]?.url;
+            const firstGallery = Array.isArray((product as any).gallery_urls) && (product as any).gallery_urls.length > 0 ? (product as any).gallery_urls[0] : null;
+
+            const imgUrl =
+              primaryMedia ||
+              primaryField ||
+              firstMedia ||
+              firstGallery ||
+              (isBlueStar
+                ? 'https://cdn.shopify.com/s/files/1/0888/8297/0937/files/ic518vnurav_gallery-images-01_2_4.png'
+                : 'https://cdn.shopify.com/s/files/1/0701/1929/3028/files/SFR250.png?v=1763989056');
             const isAdded = addedIds[product.id];
 
             return (

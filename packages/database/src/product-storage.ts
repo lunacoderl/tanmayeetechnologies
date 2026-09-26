@@ -92,6 +92,12 @@ export function getMergedProducts(): any[] {
     return baseProducts;
   }
 
+  // If in-memory custom products were populated from live Supabase database,
+  // return them directly to guarantee cloud-first single source of truth across all consumers
+  if (Array.isArray(customProducts) && customProducts.length >= 100) {
+    return customProducts;
+  }
+
   const merged = [...baseProducts];
 
   for (const custom of customProducts) {
@@ -166,11 +172,17 @@ export function mapDbProductToUnified(row: any): any {
 
   if (Array.isArray(row.product_media) && row.product_media.length > 0) {
     const sortedMedia = [...row.product_media].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+
+    // Determine the designated primary image strictly from database records
+    const explicitPrimary = sortedMedia.find((m: any) => m.is_primary || m.type === 'MAIN_IMAGE');
+    if (explicitPrimary) {
+      primaryUrl = explicitPrimary.url;
+    } else if (sortedMedia.length > 0) {
+      primaryUrl = sortedMedia[0].url;
+    }
+
     sortedMedia.forEach((m: any, i: number) => {
-      const isPrimary = m.is_primary || m.type === 'MAIN_IMAGE' || i === 0;
-      if (isPrimary && !primaryUrl) {
-        primaryUrl = m.url;
-      }
+      const isPrimary = primaryUrl ? (m.url === primaryUrl) : (i === 0);
       mediaList.push({
         id: m.id,
         url: m.url,

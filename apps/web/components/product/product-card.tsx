@@ -57,11 +57,23 @@ export function ProductCard({ product }: ProductCardProps) {
   const brandName = product.brand_name || (product.product_name?.toLowerCase().includes('blue star') ? 'Blue Star' : 'Rockwell');
   const isBlueStar = brandName.toLowerCase().includes('blue star') || (product.slug || '').toLowerCase().includes('blue-star');
   
+  const mediaList = Array.isArray(product.media) ? product.media : [];
+  const primaryMediaObj = mediaList.find((m: any) => typeof m === 'object' && (m.is_primary || m.type === 'MAIN_IMAGE'));
+  const primaryMediaUrl = primaryMediaObj ? (typeof primaryMediaObj === 'string' ? primaryMediaObj : primaryMediaObj.url) : null;
+  
+  const rawPrimaryField = (product as any).primary_image_url;
+  const isPrimaryFieldInMedia = mediaList.length === 0 || mediaList.some((m: any) => (typeof m === 'string' ? m : m.url) === rawPrimaryField);
+  const validatedPrimaryField = isPrimaryFieldInMedia ? rawPrimaryField : null;
+
+  const firstMediaUrl = mediaList.length > 0 ? (typeof mediaList[0] === 'string' ? mediaList[0] : mediaList[0].url) : null;
+  const firstGalleryUrl = Array.isArray((product as any).gallery_urls) && (product as any).gallery_urls.length > 0 ? (product as any).gallery_urls[0] : null;
+
   const imageUrl =
-    (product as any).primary_image_url ||
-    product.media?.find((m) => m.is_primary)?.url ||
-    product.media?.[0]?.url ||
-    (Array.isArray((product as any).gallery_urls) && (product as any).gallery_urls.length > 0 ? (product as any).gallery_urls[0] : null) ||
+    primaryMediaUrl ||
+    validatedPrimaryField ||
+    firstMediaUrl ||
+    firstGalleryUrl ||
+    rawPrimaryField ||
     (isBlueStar
       ? 'https://cdn.shopify.com/s/files/1/0888/8297/0937/files/ic518vnurav_gallery-images-01_2_4.png'
       : 'https://cdn.shopify.com/s/files/1/0701/1929/3028/files/SFR250.png?v=1763989056');

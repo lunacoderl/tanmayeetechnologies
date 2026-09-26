@@ -9,6 +9,9 @@ import { notFound } from 'next/navigation';
 import { SEED_CATEGORIES, fetchLiveProductsFromSupabase, findCategory } from '@tanmayee/database';
 import { CategoryClient } from './category-client';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 interface PageProps {
   params: Promise<{ slug: string }>;
 }

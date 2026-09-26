@@ -4,6 +4,22 @@ All notable changes and technical implementation milestones are documented in th
 
 ---
 
+## [2026-09-26] - Live Primary Image Resolution & Storefront Product Card Cache Elimination (BUG-016)
+
+### Fixed & Enhanced
+- **Product Card Live Primary Image Resolution & Seed Elimination (BUG-016)**:
+  - Eliminated stale seed image leakage on product cards across all public storefront surfaces (`/products`, `/brands/[slug]`, `/categories/[slug]`, `/search`, Recommended Products, Header Search dropdown).
+  - Converted `apps/web/app/products/page.tsx` from a client-side component initialized with static seed products to a Server Component with `export const dynamic = 'force-dynamic'` and `export const revalidate = 0` that fetches live Supabase products (`await fetchLiveProductsFromSupabase()`) and delegates to `<ProductsClient />`.
+  - Upgraded `apps/web/app/brands/[slug]/page.tsx` to fetch `await fetchLiveProductsFromSupabase()` directly instead of calling `getMergedProducts()`.
+  - Added non-cached live Supabase fetching with `{ cache: 'no-store' }` to `apps/web/app/search/page.tsx`, `apps/web/components/layout/header.tsx`, and `apps/web/lib/user-store-context.tsx`.
+  - Added explicit `Cache-Control: no-store, no-cache, must-revalidate` headers to `apps/web/app/api/products/route.ts`.
+  - Hardened `mapDbProductToUnified()` in `packages/database/src/product-storage.ts` to strictly search for database records with `is_primary === true || type === 'MAIN_IMAGE'` before falling back to `sortedMedia[0]`.
+  - Hardened image resolution in `apps/web/components/product/product-card.tsx` and `recommended-products.tsx` to prioritize `product.media?.find(m => m.is_primary)?.url`, validate `primary_image_url` against the product's actual media array (ignoring deleted legacy seed URLs), and fall back to `media[0]`.
+  - Ensured all 10+ user-uploaded photos across products in Supabase remain 100% intact, untouched, and correctly rendered.
+  - Verified 0 type errors across all 8 monorepo packages with `turbo typecheck`.
+
+---
+
 ## [2026-09-25] - Cloud-First Persistence, Universal Product Resolution & Storefront Images Lightbox
 
 ### Fixed & Enhanced
