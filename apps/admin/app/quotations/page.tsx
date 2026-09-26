@@ -16,6 +16,7 @@ import {
   MessageCircle,
   Copy,
   FileText,
+  ArrowLeft,
 } from 'lucide-react';
 import { adminFetch } from '../../lib/admin-api';
 import { QuotationStatus } from '@tanmayee/config';
@@ -26,6 +27,7 @@ export default function AdminQuotationsPage() {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [selectedQuote, setSelectedQuote] = useState<any | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [mobileViewTab, setMobileViewTab] = useState<'list' | 'detail'>('list');
 
   useEffect(() => {
     async function loadData() {
@@ -116,34 +118,61 @@ export default function AdminQuotationsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="font-display font-black text-2xl sm:text-3xl text-slate-900">
-            B2B Quotations & RFQ Pipeline
+          <h1 className="font-display font-black text-xl sm:text-2xl lg:text-3xl text-slate-900">
+            B2B Quotations &amp; RFQ Pipeline
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
             Real-time tracking of generated B2B pricing quotes, customer procurement interest, and sales closures.
           </p>
         </div>
       </div>
 
+      {/* Mobile View Switcher (Quotes List vs Selected Quote Details) */}
+      <div className="flex lg:hidden items-center bg-slate-200/80 p-1 rounded-xl text-xs font-bold w-full">
+        <button
+          type="button"
+          onClick={() => setMobileViewTab('list')}
+          className={`flex-1 py-1.5 rounded-lg text-center transition-all ${
+            mobileViewTab === 'list'
+              ? 'bg-white text-slate-900 shadow-xs'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          Quotes List ({filteredQuotes.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => setMobileViewTab('detail')}
+          disabled={!selectedQuote}
+          className={`flex-1 py-1.5 rounded-lg text-center transition-all disabled:opacity-40 ${
+            mobileViewTab === 'detail'
+              ? 'bg-white text-slate-900 shadow-xs'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          Quote Details {selectedQuote ? `(${selectedQuote.quotation_number?.slice(-4)})` : ''}
+        </button>
+      </div>
+
       {/* Main Grid: List + Detail */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-start">
         {/* Left Column: Quotation List */}
-        <div className="lg:col-span-5 space-y-4">
+        <div className={`lg:col-span-5 space-y-3 sm:space-y-4 ${mobileViewTab === 'detail' ? 'hidden lg:block' : 'block'}`}>
           {/* Search & Filter */}
-          <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+          <div className="bg-white p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm space-y-2.5 sm:space-y-3">
             <div className="relative">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search quote #, company, or customer..."
-                className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:border-brand-500"
+                className="w-full pl-8 pr-3 py-1.5 sm:py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:border-brand-500"
               />
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2 sm:top-2.5" />
             </div>
 
             <div className="flex items-center gap-1 overflow-x-auto pb-1 text-xs">
@@ -151,7 +180,7 @@ export default function AdminQuotationsPage() {
                 <button
                   key={st}
                   onClick={() => setStatusFilter(st)}
-                  className={`px-2.5 py-1 rounded-lg font-bold text-[11px] whitespace-nowrap transition-colors ${
+                  className={`px-2.5 py-1 rounded-lg font-bold text-[10px] sm:text-[11px] whitespace-nowrap transition-colors ${
                     statusFilter === st
                       ? 'bg-slate-900 text-white'
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -164,16 +193,19 @@ export default function AdminQuotationsPage() {
           </div>
 
           {/* Quotations List Cards */}
-          <div className="space-y-2.5">
+          <div className="space-y-2 sm:space-y-2.5">
             {filteredQuotes.map((q) => {
               const isSelected = selectedQuote?.id === q.id;
               return (
                 <div
                   key={q.id}
-                  onClick={() => setSelectedQuote(q)}
-                  className={`p-4 rounded-2xl border cursor-pointer transition-all ${
+                  onClick={() => {
+                    setSelectedQuote(q);
+                    setMobileViewTab('detail');
+                  }}
+                  className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl border cursor-pointer transition-all ${
                     isSelected
-                      ? 'bg-brand-50/50 border-brand-500 shadow-sm'
+                      ? 'bg-brand-50/50 border-brand-500 shadow-xs'
                       : 'bg-white border-slate-200 hover:border-slate-300'
                   }`}
                 >
@@ -182,20 +214,20 @@ export default function AdminQuotationsPage() {
                       <div className="font-mono text-xs font-bold text-slate-900">
                         {q.quotation_number}
                       </div>
-                      <div className="text-xs font-bold text-slate-700 mt-1">
+                      <div className="text-xs font-bold text-slate-700 mt-0.5 sm:mt-1">
                         {q.customer_name}
                       </div>
                       {q.customer_company && (
-                        <div className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
-                          <Building className="w-3 h-3 text-slate-400" />
-                          <span>{q.customer_company}</span>
+                        <div className="text-[10px] sm:text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+                          <Building className="w-3 h-3 text-slate-400 shrink-0" />
+                          <span className="truncate">{q.customer_company}</span>
                         </div>
                       )}
                     </div>
                     <div>{getStatusBadge(q.status)}</div>
                   </div>
 
-                  <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
+                  <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
                     <span className="text-slate-400 text-[10px]">
                       {new Date(q.created_at).toLocaleDateString('en-IN', {
                         day: 'numeric',
@@ -203,7 +235,7 @@ export default function AdminQuotationsPage() {
                         year: 'numeric',
                       })}
                     </span>
-                    <span className="font-extrabold text-slate-900">
+                    <span className="font-extrabold text-slate-900 text-xs sm:text-sm">
                       ₹{q.grand_total?.toLocaleString('en-IN')}
                     </span>
                   </div>
@@ -212,7 +244,7 @@ export default function AdminQuotationsPage() {
             })}
 
             {filteredQuotes.length === 0 && (
-              <div className="p-8 text-center bg-white rounded-2xl border border-slate-200 text-slate-500 text-xs space-y-1">
+              <div className="p-6 sm:p-8 text-center bg-white rounded-xl sm:rounded-2xl border border-slate-200 text-slate-500 text-xs space-y-1">
                 <div className="font-bold text-slate-700">
                   {quotations.length === 0 ? 'No quotations submitted yet' : 'No matching quotations'}
                 </div>
@@ -227,11 +259,23 @@ export default function AdminQuotationsPage() {
         </div>
 
         {/* Right Column: Selected Quotation Details */}
-        <div className="lg:col-span-7">
+        <div className={`lg:col-span-7 ${mobileViewTab === 'list' ? 'hidden lg:block' : 'block'}`}>
           {selectedQuote ? (
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+            <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 space-y-4 sm:space-y-6">
+              {/* Back to list button on mobile */}
+              <div className="lg:hidden pb-1 border-b border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setMobileViewTab('list')}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-600 hover:text-brand-700"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>Back to Quotations List</span>
+                </button>
+              </div>
+
               {/* Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-b border-slate-100 pb-3 sm:pb-5">
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="font-mono font-black text-lg text-slate-900">
@@ -319,20 +363,20 @@ export default function AdminQuotationsPage() {
 
                 {/* Instant Actions for Sales Team */}
                 {selectedQuote.customer_phone && (
-                  <div className="mt-4 pt-3 border-t border-slate-200 flex items-center gap-2">
+                  <div className="mt-3 sm:mt-4 pt-3 border-t border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                     <a
                       href={`https://wa.me/${selectedQuote.customer_phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
                         `Hello ${selectedQuote.customer_name}, Tanmayee Technologies sales team here regarding your official quote ${selectedQuote.quotation_number} for ₹${selectedQuote.grand_total?.toLocaleString('en-IN')}. How may we assist with dispatch and site delivery?`
                       )}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-1.5 rounded-lg shadow-sm transition-colors"
+                      className="inline-flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow-xs transition-colors"
                     >
                       <MessageCircle className="w-3.5 h-3.5" /> Direct WhatsApp Chat
                     </a>
                     <a
                       href={`tel:${selectedQuote.customer_phone}`}
-                      className="inline-flex items-center gap-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs px-3.5 py-1.5 rounded-lg transition-colors"
+                      className="inline-flex items-center justify-center gap-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs px-3.5 py-2 rounded-xl transition-colors"
                     >
                       <Phone className="w-3.5 h-3.5" /> Call Client
                     </a>
@@ -342,45 +386,47 @@ export default function AdminQuotationsPage() {
 
               {/* Items Table */}
               <div>
-                <div className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">
-                  Line Items & Frozen Snapshot Specifications
+                <div className="text-[11px] sm:text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">
+                  Line Items &amp; Frozen Snapshot Specifications
                 </div>
                 <div className="border border-slate-200 rounded-xl overflow-hidden">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold">
-                      <tr>
-                        <th className="p-3">Product / Model</th>
-                        <th className="p-3 text-center">Qty</th>
-                        <th className="p-3 text-right">Unit MRP</th>
-                        <th className="p-3 text-right">Disc %</th>
-                        <th className="p-3 text-right">Total</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {selectedQuote.items?.map((item: any) => (
-                        <tr key={item.id} className="hover:bg-slate-50/50">
-                          <td className="p-3">
-                            <div className="font-bold text-slate-900">{item.product_name}</div>
-                            <div className="text-[11px] text-slate-500 font-mono">
-                              Model: {item.model_number || 'N/A'} • {item.brand_name}
-                            </div>
-                          </td>
-                          <td className="p-3 text-center font-bold text-slate-800">
-                            {item.quantity}
-                          </td>
-                          <td className="p-3 text-right text-slate-600 font-mono">
-                            ₹{item.unit_price?.toLocaleString('en-IN')}
-                          </td>
-                          <td className="p-3 text-right text-emerald-600 font-bold">
-                            {item.discount_percent}%
-                          </td>
-                          <td className="p-3 text-right font-extrabold text-slate-900 font-mono">
-                            ₹{item.total_price?.toLocaleString('en-IN')}
-                          </td>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-[11px] sm:text-xs min-w-[500px] sm:min-w-0">
+                      <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold whitespace-nowrap">
+                        <tr>
+                          <th className="py-2 px-2.5 sm:p-3">Product / Model</th>
+                          <th className="py-2 px-2.5 sm:p-3 text-center">Qty</th>
+                          <th className="py-2 px-2.5 sm:p-3 text-right">Unit MRP</th>
+                          <th className="py-2 px-2.5 sm:p-3 text-right">Disc %</th>
+                          <th className="py-2 px-2.5 sm:p-3 text-right">Total</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {selectedQuote.items?.map((item: any) => (
+                          <tr key={item.id} className="hover:bg-slate-50/50">
+                            <td className="py-2 px-2.5 sm:p-3">
+                              <div className="font-bold text-slate-900">{item.product_name}</div>
+                              <div className="text-[10px] text-slate-500 font-mono">
+                                Model: {item.model_number || 'N/A'} • {item.brand_name}
+                              </div>
+                            </td>
+                            <td className="py-2 px-2.5 sm:p-3 text-center font-bold text-slate-800">
+                              {item.quantity}
+                            </td>
+                            <td className="py-2 px-2.5 sm:p-3 text-right text-slate-600 font-mono">
+                              ₹{item.unit_price?.toLocaleString('en-IN')}
+                            </td>
+                            <td className="py-2 px-2.5 sm:p-3 text-right text-emerald-600 font-bold">
+                              {item.discount_percent}%
+                            </td>
+                            <td className="py-2 px-2.5 sm:p-3 text-right font-extrabold text-slate-900 font-mono">
+                              ₹{item.total_price?.toLocaleString('en-IN')}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
 

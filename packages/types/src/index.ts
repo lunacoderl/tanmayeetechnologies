@@ -106,6 +106,8 @@ export interface Product extends BaseEntity {
   published_at?: string | null;
   archived_at?: string | null;
   media?: ProductMedia[] | any[];
+  is_available?: boolean;
+  in_stock?: boolean;
 }
 
 export interface ProductWithRelations extends Product {

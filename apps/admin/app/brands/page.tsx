@@ -15,20 +15,20 @@ export default function AdminBrandsPage() {
   const [brands] = useState(SEED_BRANDS);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="font-display font-black text-2xl sm:text-3xl text-slate-900">
-            Brand Partners & Authorized Dealerships
+          <h1 className="font-display font-black text-xl sm:text-2xl lg:text-3xl text-slate-900">
+            Brand Partners &amp; Dealerships
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
             Manage principal partnerships with Blue Star Limited and Rockwell Industries.
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {brands.map((brand) => {
           const productCount = SEED_PRODUCTS.filter(
             (p) => p.brand_id === brand.id || (p.brand_name || '').toLowerCase() === brand.name.toLowerCase()
@@ -36,7 +36,7 @@ export default function AdminBrandsPage() {
           return (
             <div
               key={brand.id}
-              className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5"
+              className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm space-y-4 sm:space-y-5"
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">

@@ -22,19 +22,192 @@ import { useUserStore } from '../../lib/user-store-context';
 
 interface ProductsClientProps {
   initialProducts: any[];
+  initialCategory?: string;
+  initialBrand?: string;
+  initialQuery?: string;
 }
 
-export function ProductsClient({ initialProducts }: ProductsClientProps) {
+export function isGfrProduct(product: any): boolean {
+  if (!product) return false;
+  const model = (product.model_number || '').toUpperCase();
+  const name = (product.product_name || '').toUpperCase();
+  return model.startsWith('GFR') || model.includes('GFR') || name.includes('GFR') || name.includes('GREEN FREEZER');
+}
+
+export function getProductCapacity(product: any): number {
+  if (!product) return 999999;
+  if (Array.isArray(product.attributes)) {
+    for (const attr of product.attributes) {
+      const attrName = (attr.name || attr.key || attr.attribute_name || '').toLowerCase();
+      if (
+        attrName.includes('capacity') ||
+        attrName.includes('volume') ||
+        attrName.includes('gross volume') ||
+        attrName.includes('net volume')
+      ) {
+        const match = String(attr.value || attr.attribute_value || '').match(/(\d+(?:\.\d+)?)\s*(?:l|ltr|litre|liters|liter|litres)?/i);
+        if (match) {
+          const val = parseFloat(match[1]);
+          if (val > 10 && val < 5000) return val;
+        }
+      }
+    }
+  }
+
+  const name = product.product_name || '';
+  const nameMatch = name.match(/(\d+)\s*(?:L|Ltr|Litre|Liters)\b/i);
+  if (nameMatch) {
+    const val = parseFloat(nameMatch[1]);
+    if (val > 10 && val < 5000) return val;
+  }
+
+  const model = product.model_number || '';
+  const modelMatch = model.match(/GFR(\d{3,4})/i);
+  if (modelMatch) {
+    return parseFloat(modelMatch[1]);
+  }
+
+  return 999999;
+}
+
+export function matchProductCategory(p: any, catSlug: string): boolean {
+  if (!catSlug || catSlug === 'all') return true;
+  const cName = (p.category_name || '').toLowerCase();
+  const subId = (p.subcategory_id || '').toLowerCase();
+  const pName = (p.product_name || '').toLowerCase();
+  const model = (p.model_number || '').toLowerCase();
+  const catId = (p.category_id || '').toLowerCase();
+
+  // Direct exact slug or ID match
+  if (cName.replace(/\s+/g, '-') === catSlug || subId === catSlug || catId === catSlug) {
+    return true;
+  }
+
+  switch (catSlug) {
+    case 'inverter-split-ac':
+    case 'split-ac':
+      return (
+        (subId.includes('inverter') && !subId.includes('window') && !pName.includes('window')) ||
+        (pName.includes('inverter') && pName.includes('split') && !pName.includes('window')) ||
+        (cName.includes('air') && pName.includes('inverter') && !pName.includes('window') && !pName.includes('cassette') && !pName.includes('verticool') && !pName.includes('tower'))
+      );
+
+    case 'fixed-speed-split-ac':
+    case 'non-inverter-split-ac':
+    case 'fixed-speed-ac':
+      return (
+        subId.includes('non-inverter') ||
+        pName.includes('fixed speed') ||
+        (pName.includes('non-inverter') && !pName.includes('window')) ||
+        (cName.includes('air') && !pName.includes('inverter') && !pName.includes('cassette') && !pName.includes('tower') && !pName.includes('verticool') && !pName.includes('window') && !pName.includes('mega'))
+      );
+
+    case 'commercial-cassette-ac':
+    case 'cassette-ac':
+    case 'commercial-cassette-acs':
+      return pName.includes('cassette') || model.includes('cassette') || subId.includes('cassette') || cName.includes('cassette');
+
+    case 'commercial-verticool-ac':
+    case 'tower-ac':
+    case 'commercial-verticool-acs':
+    case 'verticool':
+      return pName.includes('verticool') || pName.includes('tower') || subId.includes('tower') || cName.includes('tower');
+
+    case 'window-ac':
+    case 'window-acs':
+    case 'window-inverter-ac':
+    case 'window-non-inverter-ac':
+      return pName.includes('window') || subId.includes('window') || cName.includes('window');
+
+    case 'mega-split-ac':
+    case 'mega-split-acs':
+      return pName.includes('mega split') || pName.includes('mega');
+
+    case 'convertible-green-freezer':
+    case 'convertible-green-freezers':
+    case 'green-freezer':
+    case 'green-freezers':
+      return isGfrProduct(p);
+
+    case 'curved-glass-freezer':
+    case 'curved-glass-freezers':
+      return pName.includes('curved glass') || pName.includes('glass top') || model.includes('gl') || cName.includes('glass');
+
+    case 'visi-coolers':
+    case 'visi-cooler':
+    case 'display-cooler':
+    case 'display-coolers':
+      return pName.includes('visi') || cName.includes('visi') || catId === 'c0000001-0000-0000-0000-000000000003';
+
+    case 'water-coolers-dispensers':
+    case 'water-cooler':
+    case 'water-coolers':
+    case 'water-dispenser':
+    case 'water-dispensers':
+    case 'stainless-steel-water-cooler':
+      return pName.includes('water cooler') || pName.includes('dispenser') || cName.includes('water') || catId === 'c0000001-0000-0000-0000-000000000004';
+
+    case 'commercial-kitchen-refrigeration':
+    case 'kitchen-refrigeration':
+    case 'kitchen-chillers':
+    case 'kitchen-chillers-freezers':
+      return (
+        cName.includes('kitchen') ||
+        pName.includes('chiller') ||
+        pName.includes('reach-in') ||
+        pName.includes('under counter') ||
+        pName.includes('back bar') ||
+        pName.includes('blast freezer') ||
+        catId === 'c0000001-0000-0000-0000-000000000006'
+      );
+
+    case 'air-conditioners':
+      return cName.includes('air') || (p.brand_name && p.brand_name.toLowerCase().includes('blue star')) || catId === 'c0000001-0000-0000-0000-000000000001';
+
+    case 'freezers':
+    case 'deep-freezers':
+    case 'deep-freezer':
+    case 'chest-freezer':
+      return cName.includes('freezer') || pName.includes('freezer') || isGfrProduct(p) || catId === 'c0000001-0000-0000-0000-000000000002';
+
+    default:
+      return (
+        cName.includes(catSlug) ||
+        pName.includes(catSlug) ||
+        subId.includes(catSlug)
+      );
+  }
+}
+
+export function ProductsClient({
+  initialProducts,
+  initialCategory = 'all',
+  initialBrand = 'all',
+  initialQuery = '',
+}: ProductsClientProps) {
   const { trackSearchQuery, trackCategoryClick } = useUserStore();
-  const [selectedBrand, setSelectedBrand] = useState<string>('all');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedBrand, setSelectedBrand] = useState<string>(initialBrand || 'all');
+  const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || 'all');
   const [selectedStar, setSelectedStar] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState<string>(initialQuery || '');
   const [sortBy, setSortBy] = useState<'relevance' | 'price_asc' | 'price_desc' | 'name'>('relevance');
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState<boolean>(false);
 
   // Initialize with server-fetched live Supabase products
   const [productList, setProductList] = useState<any[]>(initialProducts);
+
+  // Keep state synchronized when props change
+  useEffect(() => {
+    if (initialCategory) setSelectedCategory(initialCategory);
+  }, [initialCategory]);
+
+  useEffect(() => {
+    if (initialBrand) setSelectedBrand(initialBrand);
+  }, [initialBrand]);
+
+  useEffect(() => {
+    if (initialQuery !== undefined) setSearchQuery(initialQuery);
+  }, [initialQuery]);
 
   // Behavioral interaction tracking
   useEffect(() => {
@@ -109,22 +282,9 @@ export function ProductsClient({ initialProducts }: ProductsClientProps) {
       });
     }
 
-    // Category filter
+    // Category filter using comprehensive matcher
     if (selectedCategory !== 'all') {
-      result = result.filter((p) => {
-        const catSlug = selectedCategory;
-        const catNameLower = (p.category_name || '').toLowerCase();
-        return (
-          catNameLower.replace(/\s+/g, '-') === catSlug ||
-          p.category_id === selectedCategory ||
-          p.subcategory_id === selectedCategory ||
-          (catSlug === 'freezers' && (catNameLower.includes('freezer') || p.category_id === 'c0000001-0000-0000-0000-000000000002')) ||
-          (catSlug === 'visi-coolers' && (catNameLower.includes('visi') || p.category_id === 'c0000001-0000-0000-0000-000000000003')) ||
-          (catSlug === 'water-coolers-dispensers' && (catNameLower.includes('water cooler') || catNameLower.includes('dispenser') || p.category_id === 'c0000001-0000-0000-0000-000000000004')) ||
-          (catSlug === 'air-conditioners' && (catNameLower.includes('ac') || catNameLower.includes('air conditioner') || p.category_id === 'c0000001-0000-0000-0000-000000000001')) ||
-          (catSlug === 'commercial-kitchen-refrigeration' && (p.category_id === 'c0000001-0000-0000-0000-000000000006' || catNameLower.includes('chiller') || catNameLower.includes('reach-in') || catNameLower.includes('under counter')))
-        );
-      });
+      result = result.filter((p) => matchProductCategory(p, selectedCategory));
     }
 
     // Star rating filter
@@ -134,7 +294,7 @@ export function ProductsClient({ initialProducts }: ProductsClientProps) {
       );
     }
 
-    // Sort
+    // Sort with GFR FIRST PRIORITY (ascending capacity from low to high litres)
     switch (sortBy) {
       case 'price_asc':
         result.sort((a, b) => (a.reference_price || 0) - (b.reference_price || 0));
@@ -146,7 +306,17 @@ export function ProductsClient({ initialProducts }: ProductsClientProps) {
         result.sort((a, b) => (a.product_name || '').localeCompare(b.product_name || ''));
         break;
       default:
-        result.sort((a, b) => (b.view_count || 0) - (a.view_count || 0));
+        // Priority to GFR products (sorted low to high capacity: 194L -> 1295L), then others by view_count / popularity
+        result.sort((a, b) => {
+          const aGfr = isGfrProduct(a);
+          const bGfr = isGfrProduct(b);
+          if (aGfr && bGfr) {
+            return getProductCapacity(a) - getProductCapacity(b);
+          }
+          if (aGfr && !bGfr) return -1;
+          if (!aGfr && bGfr) return 1;
+          return (b.view_count || 0) - (a.view_count || 0);
+        });
     }
 
     return result;
@@ -390,8 +560,13 @@ export function ProductsClient({ initialProducts }: ProductsClientProps) {
                 <div className="grid grid-cols-2 gap-2">
                   {[
                     { id: 'all', name: 'All Categories' },
-                    { id: 'air-conditioners', name: 'Air Conditioners' },
-                    { id: 'freezers', name: 'Deep Freezers' },
+                    { id: 'inverter-split-ac', name: 'Inverter Split ACs' },
+                    { id: 'fixed-speed-split-ac', name: 'Fixed Speed ACs' },
+                    { id: 'commercial-cassette-ac', name: 'Cassette ACs' },
+                    { id: 'commercial-verticool-ac', name: 'Tower / Verticool' },
+                    { id: 'window-ac', name: 'Window ACs' },
+                    { id: 'convertible-green-freezer', name: 'Green Freezers (GFR)' },
+                    { id: 'curved-glass-freezer', name: 'Curved Glass Freezers' },
                     { id: 'visi-coolers', name: 'Visi Coolers' },
                     { id: 'water-coolers-dispensers', name: 'Water Coolers' },
                     { id: 'commercial-kitchen-refrigeration', name: 'Kitchen Chillers' },

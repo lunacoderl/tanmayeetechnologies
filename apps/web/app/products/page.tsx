@@ -25,7 +25,31 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function ProductsPage() {
-  const products = await fetchLiveProductsFromSupabase();
-  return <ProductsClient initialProducts={products} />;
+interface PageProps {
+  searchParams?: Promise<{
+    category?: string;
+    brand?: string;
+    q?: string;
+    deals?: string;
+  }>;
+}
+
+export default async function ProductsPage({ searchParams }: PageProps) {
+  const [products, resolvedSearchParams] = await Promise.all([
+    fetchLiveProductsFromSupabase(),
+    searchParams ? searchParams : Promise.resolve({ category: 'all', brand: 'all', q: '', deals: '' }),
+  ]);
+
+  const category = (resolvedSearchParams as any)?.category || 'all';
+  const brand = (resolvedSearchParams as any)?.brand || 'all';
+  const q = (resolvedSearchParams as any)?.q || '';
+
+  return (
+    <ProductsClient
+      initialProducts={products}
+      initialCategory={category}
+      initialBrand={brand}
+      initialQuery={q}
+    />
+  );
 }

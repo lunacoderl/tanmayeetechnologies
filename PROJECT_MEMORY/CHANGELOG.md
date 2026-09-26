@@ -4,6 +4,36 @@ All notable changes and technical implementation milestones are documented in th
 
 ---
 
+## [2026-09-26] - Admin Portal Mobile Version, Closable Navigation & Decreased Sizing (FEAT-020)
+
+### Added & Enhanced
+- **Admin Mobile Top Header & Navigation Drawer**:
+  - Implemented responsive mobile top header (`h-14 lg:hidden`) in `apps/admin/components/layout/admin-shell.tsx` with hamburger toggle button (`Menu`), brand logo, and external public storefront link.
+  - Upgraded `apps/admin/components/layout/sidebar.tsx` with closable mobile drawer:
+    - Added dark backdrop overlay (`fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-sm lg:hidden`) that dismisses drawer when tapped.
+    - Added mobile close button (`X`) in the sidebar header.
+    - Added automatic drawer dismissal upon clicking any internal navigation item, the public website link, or the logout button.
+    - Added body scroll lock (`document.body.style.overflow = 'hidden'`) while drawer is open on mobile to prevent background page scroll bleed.
+    - Added global Escape key listener to close drawer.
+- **Decreased Sizes & Mobile-Optimized Layouts Across Admin Portal**:
+  - **Dashboard (`/dashboard`)**: Scaled down page title (`text-xl sm:text-2xl lg:text-3xl`), KPI metrics (`text-xl sm:text-3xl`), grid layouts (`grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4`), and catalog summary cards for mobile screens.
+  - **Products (`/products`)**: Scaled down top toolbar, search input, tabs, action buttons, table cell paddings (`py-2 sm:py-2.5 px-2 sm:px-3.5 text-[11px] sm:text-xs`), product thumbnails (`w-7 h-7 sm:w-9 sm:h-9`), and compact Availability toggle buttons (`px-2 py-0.5 sm:px-2.5 sm:py-1 text-[9px] sm:text-[10px]`).
+  - **Product Editor (`/products/[id]/edit` & `/products/new`)**: Scaled down action header, tab pills, card padding (`p-3.5 sm:p-6 rounded-xl sm:rounded-2xl`), form labels (`text-[11px] sm:text-xs`), inputs, and Media Manager dropzone/hero showcase container.
+  - **Quotations (`/quotations`)**: Added mobile view switcher (`mobileViewTab: 'list' | 'detail'`) allowing seamless mobile navigation between quotation list and detail views without scrolling; added "Back to Quotes List" button; wrapped line items table in `<div className="overflow-x-auto">`; converted WhatsApp and Call action buttons to responsive mobile layouts.
+  - **Service Management (`/services`)**: Scaled headers, filters, request cards (`p-3.5 sm:p-5 rounded-xl sm:rounded-2xl`), status selectors, and WhatsApp dispatch action buttons.
+  - **Categories (`/categories`)**: Scaled down primary categories sidebar, category details, and EAV specification schemas.
+  - **Brands (`/brands`)**: Scaled down brand partner cards (`p-4 sm:p-6 rounded-xl sm:rounded-2xl`) and metadata badges.
+  - **Offers (`/offers`)**: Scaled down promotional campaign cards, stat counters, and filters.
+  - **Analytics (`/analytics`)**: Scaled down KPI cards (`p-3 sm:p-5`), conversion funnel, and wrapped High-Value Lead Intelligence table in horizontal scroll container.
+  - **Audit Logs (`/audit-logs`)**: Scaled down typography, filter buttons, and wrapped audit trail table in `<div className="overflow-x-auto">`.
+  - **Publishing (`/publishing`)**: Scaled down snapshot cards and trigger buttons.
+- **Storefront Stock Availability & Live Notifications**:
+  - Added GFR product sorting priority (low to high quantity) on `/products`.
+  - Added "Currently Not Available" watermark overlay and "Notify Me" phone capture modal on out-of-stock product cards.
+  - Added stock notifications API (`/api/stock-notifications`) and Resend email alerting on quotation submissions.
+
+---
+
 ## [2026-09-26] - Live Primary Image Resolution & Storefront Product Card Cache Elimination (BUG-016)
 
 ### Fixed & Enhanced

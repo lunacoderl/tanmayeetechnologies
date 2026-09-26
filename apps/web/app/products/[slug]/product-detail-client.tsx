@@ -42,6 +42,10 @@ import {
   Maximize2,
   ChevronLeft,
   X,
+  Bell,
+  Loader2,
+  AlertCircle,
+  Phone,
 } from 'lucide-react';
 import { Product } from '@tanmayee/types';
 import { COMPANY } from '@tanmayee/config';
@@ -58,6 +62,8 @@ interface ProductDetailClientProps {
     media?: { url: string; type?: string; is_primary: boolean; alt?: string }[];
     features?: string[] | null;
     applications?: string[] | null;
+    is_available?: boolean;
+    in_stock?: boolean;
   };
   brand?: { id: string; name: string; slug: string };
   category?: { id: string; name: string; slug: string };
@@ -81,6 +87,56 @@ export function ProductDetailClient({
   const [quantity, setQuantity] = useState(1);
   const [copied, setCopied] = useState(false);
   const [added, setAdded] = useState(false);
+
+  // Availability detection
+  const isAvailable =
+    product.is_available !== false &&
+    product.in_stock !== false &&
+    !(product.attributes || []).some(
+      (a: any) =>
+        (a.name || a.attribute_name || '').toLowerCase() === 'availability' &&
+        (a.value === 'CURRENTLY_NOT_AVAILABLE' || a.attribute_value === 'CURRENTLY_NOT_AVAILABLE' || a.value === 'OUT_OF_STOCK')
+    );
+
+  // Notify Me Modal State
+  const [isNotifyOpen, setIsNotifyOpen] = useState(false);
+  const [notifyPhone, setNotifyPhone] = useState('');
+  const [notifyName, setNotifyName] = useState('');
+  const [notifySubmitting, setNotifySubmitting] = useState(false);
+  const [notifySuccess, setNotifySuccess] = useState(false);
+  const [notifyError, setNotifyError] = useState('');
+
+  const handleNotifySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!notifyPhone.trim() || notifyPhone.replace(/[^0-9]/g, '').length < 10) {
+      setNotifyError('Please enter a valid 10-digit mobile number');
+      return;
+    }
+    setNotifySubmitting(true);
+    setNotifyError('');
+    try {
+      const res = await fetch('/api/stock-notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          product_id: product.id,
+          product_name: product.product_name,
+          model_number: product.model_number || 'N/A',
+          customer_phone: notifyPhone.trim(),
+          customer_name: notifyName.trim() || 'Prospective Buyer',
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to submit notification request');
+      }
+      setNotifySuccess(true);
+    } catch (err: any) {
+      setNotifyError(err.message || 'Submission failed. Please try again.');
+    } finally {
+      setNotifySubmitting(false);
+    }
+  };
 
   const inWishlist = isInWishlist(product.id);
 
@@ -300,11 +356,10 @@ export function ProductDetailClient({
                     type="button"
                     onClick={() => openLightbox(idx)}
                     onMouseEnter={() => setActiveMediaIndex(idx)}
-                    className={`relative w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden border-2 transition-all duration-200 shrink-0 group cursor-pointer ${
-                      activeMediaIndex === idx
+                    className={`relative w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden border-2 transition-all duration-200 shrink-0 group cursor-pointer ${activeMediaIndex === idx
                         ? 'border-cyan-500 shadow-md ring-2 ring-cyan-400/40 scale-105 bg-white'
                         : 'border-slate-200/90 hover:border-slate-400 opacity-75 hover:opacity-100 hover:scale-102 bg-white'
-                    }`}
+                      }`}
                     title={`Click to open photos box • ${item.title}`}
                     aria-label={`View ${product.product_name} image ${idx + 1}`}
                   >
@@ -356,14 +411,23 @@ export function ProductDetailClient({
                   />
                 )}
 
+                {/* Out of Stock Watermark Overlay */}
+                {!isAvailable && (
+                  <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-[2px] flex items-center justify-center p-4 z-20 pointer-events-none">
+                    <div className="bg-rose-950/90 border-2 border-rose-400 text-rose-100 font-black text-xs sm:text-sm px-4 py-2.5 rounded-2xl shadow-2xl flex items-center gap-2 tracking-wide uppercase">
+                      <AlertCircle className="w-4 h-4 text-rose-300" />
+                      <span>Currently Not Available</span>
+                    </div>
+                  </div>
+                )}
+
                 {/* Top Badges */}
                 <div className="absolute top-4 left-4 flex items-center gap-2 z-10">
                   <span
-                    className={`text-xs font-extrabold px-3.5 py-1.5 rounded-full uppercase tracking-wider shadow-md text-white ${
-                      isBlueStar
+                    className={`text-xs font-extrabold px-3.5 py-1.5 rounded-full uppercase tracking-wider shadow-md text-white ${isBlueStar
                         ? 'bg-gradient-to-r from-blue-600 to-cyan-600'
                         : 'bg-gradient-to-r from-emerald-600 to-teal-600'
-                    }`}
+                      }`}
                   >
                     {brandName}
                   </span>
@@ -504,9 +568,15 @@ export function ProductDetailClient({
                 )}
               </div>
 
-              <span className="text-xs text-emerald-800 bg-emerald-100/90 border border-emerald-300 font-extrabold px-3 py-1 rounded-full shadow-xs">
-                In Stock & Ready
-              </span>
+              {isAvailable ? (
+                <span className="text-xs text-emerald-800 bg-emerald-100/90 border border-emerald-300 font-extrabold px-3 py-1 rounded-full shadow-xs">
+                  In Stock & Ready
+                </span>
+              ) : (
+                <span className="text-xs text-rose-800 bg-rose-100 border border-rose-300 font-extrabold px-3 py-1 rounded-full shadow-xs">
+                  Currently Not Available
+                </span>
+              )}
             </div>
 
             <div className="text-xs text-slate-600 border-t border-slate-200/80 pt-3 flex items-center gap-2">
@@ -517,58 +587,70 @@ export function ProductDetailClient({
             </div>
           </div>
 
-          {/* Action Row: Quantity + Quotation + WhatsApp */}
+          {/* Action Row: Quantity + Quotation / Notify + WhatsApp */}
           <div className="space-y-3 pt-2">
             <div className="flex items-center gap-3">
               {/* Quantity Selector */}
-              <div className="flex items-center border border-slate-300 bg-white rounded-2xl overflow-hidden h-12 shadow-xs">
-                <button
-                  type="button"
-                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="px-3.5 text-slate-600 hover:bg-slate-100 font-bold text-base transition-colors"
-                  aria-label="Decrease quantity"
-                >
-                  -
-                </button>
-                <span className="px-4 text-sm font-extrabold text-slate-900">{quantity}</span>
-                <button
-                  type="button"
-                  onClick={() => setQuantity((q) => q + 1)}
-                  className="px-3.5 text-slate-600 hover:bg-slate-100 font-bold text-base transition-colors"
-                  aria-label="Increase quantity"
-                >
-                  +
-                </button>
-              </div>
+              {isAvailable && (
+                <div className="flex items-center border border-slate-300 bg-white rounded-2xl overflow-hidden h-12 shadow-xs">
+                  <button
+                    type="button"
+                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                    className="px-3.5 text-slate-600 hover:bg-slate-100 font-bold text-base transition-colors"
+                    aria-label="Decrease quantity"
+                  >
+                    -
+                  </button>
+                  <span className="px-4 text-sm font-extrabold text-slate-900">{quantity}</span>
+                  <button
+                    type="button"
+                    onClick={() => setQuantity((q) => q + 1)}
+                    className="px-3.5 text-slate-600 hover:bg-slate-100 font-bold text-base transition-colors"
+                    aria-label="Increase quantity"
+                  >
+                    +
+                  </button>
+                </div>
+              )}
 
-              {/* Add to Quotation Button */}
-              <button
-                type="button"
-                onClick={handleAddQuotation}
-                className="flex-1 h-12 bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-900 hover:from-blue-600 hover:to-cyan-600 text-white font-extrabold text-sm rounded-2xl shadow-lg shadow-slate-950/20 flex items-center justify-center gap-2.5 transition-all duration-300 active:scale-98"
-              >
-                {added ? (
-                  <>
-                    <Check className="w-4 h-4 text-emerald-400 animate-bounce" />
-                    <span>Added to Quotation!</span>
-                  </>
-                ) : (
-                  <>
-                    <FileText className="w-4 h-4 text-cyan-300" />
-                    <span>Request Quotation</span>
-                  </>
-                )}
-              </button>
+              {/* Add to Quotation or Notify Button */}
+              {isAvailable ? (
+                <button
+                  type="button"
+                  onClick={handleAddQuotation}
+                  className="flex-1 h-12 bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-900 hover:from-blue-600 hover:to-cyan-600 text-white font-extrabold text-sm rounded-2xl shadow-lg shadow-slate-950/20 flex items-center justify-center gap-2.5 transition-all duration-300 active:scale-98 cursor-pointer"
+                >
+                  {added ? (
+                    <>
+                      <Check className="w-4 h-4 text-emerald-400 animate-bounce" />
+                      <span>Added to Quotation!</span>
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="w-4 h-4 text-cyan-300" />
+                      <span>Request Quotation</span>
+                    </>
+                  )}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setIsNotifyOpen(true)}
+                  className="flex-1 h-12 bg-gradient-to-r from-amber-600 via-orange-600 to-rose-600 hover:from-amber-700 hover:to-rose-700 text-white font-extrabold text-sm rounded-2xl shadow-lg shadow-orange-950/20 flex items-center justify-center gap-2.5 transition-all duration-300 active:scale-98 cursor-pointer"
+                >
+                  <Bell className="w-4 h-4 text-amber-200" />
+                  <span>Notify Me When Available</span>
+                </button>
+              )}
 
               {/* Wishlist Button */}
               <button
                 type="button"
                 onClick={() => toggleWishlist(product)}
-                className={`h-12 px-3 rounded-2xl border transition-all flex items-center gap-1.5 font-bold text-xs ${
-                  inWishlist
+                className={`h-12 px-3 rounded-2xl border transition-all flex items-center gap-1.5 font-bold text-xs ${inWishlist
                     ? 'bg-rose-50 border-rose-300 text-rose-600 shadow-sm'
                     : 'border-slate-300 hover:border-rose-300 bg-white hover:bg-rose-50/50 text-slate-700'
-                }`}
+                  }`}
                 title={inWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}
               >
                 <Heart className={`w-4 h-4 ${inWishlist ? 'fill-rose-500 text-rose-500' : 'text-slate-500'}`} />
@@ -684,9 +766,8 @@ export function ProductDetailClient({
               {product.attributes?.map((attr, idx) => (
                 <tr
                   key={idx}
-                  className={`border-b border-slate-100 hover:bg-slate-100/50 transition-colors ${
-                    idx % 2 === 0 ? 'bg-slate-50/60' : 'bg-white'
-                  }`}
+                  className={`border-b border-slate-100 hover:bg-slate-100/50 transition-colors ${idx % 2 === 0 ? 'bg-slate-50/60' : 'bg-white'
+                    }`}
                 >
                   <td className="py-3 px-4 font-bold text-slate-700 w-1/3 flex items-center gap-2.5">
                     {getAttributeIcon(attr.name)}
@@ -744,13 +825,13 @@ export function ProductDetailClient({
             {(product.applications && product.applications.length > 0
               ? product.applications
               : [
-                  'Supermarkets & Grocery Chains',
-                  'Ice Cream Parlors & Dairies',
-                  'Bakeries & Confectioneries',
-                  'Cloud Kitchens & Fine Dining',
-                  'Hotels & Banquet Centers',
-                  'Pharmaceutical & Biotech Labs'
-                ]
+                'Supermarkets & Grocery Chains',
+                'Ice Cream Parlors & Dairies',
+                'Bakeries & Confectioneries',
+                'Cloud Kitchens & Fine Dining',
+                'Hotels & Banquet Centers',
+                'Pharmaceutical & Biotech Labs'
+              ]
             ).map((app, i) => (
               <div
                 key={i}
@@ -886,11 +967,10 @@ export function ProductDetailClient({
           >
             <div className="flex items-center gap-3 min-w-0">
               <span
-                className={`text-[11px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shrink-0 shadow ${
-                  isBlueStar
+                className={`text-[11px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shrink-0 shadow ${isBlueStar
                     ? 'bg-blue-600 text-white'
                     : 'bg-emerald-600 text-white'
-                }`}
+                  }`}
               >
                 {brandName}
               </span>
@@ -990,11 +1070,10 @@ export function ProductDetailClient({
                       setLightboxIndex(idx);
                       setActiveMediaIndex(idx);
                     }}
-                    className={`relative w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden shrink-0 border-2 transition-all duration-200 bg-white cursor-pointer ${
-                      lightboxIndex === idx
+                    className={`relative w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden shrink-0 border-2 transition-all duration-200 bg-white cursor-pointer ${lightboxIndex === idx
                         ? 'border-cyan-400 ring-2 ring-cyan-400/50 scale-105 shadow-lg shadow-cyan-500/30'
                         : 'border-white/20 opacity-60 hover:opacity-100 hover:border-white/50'
-                    }`}
+                      }`}
                     title={item.title}
                   >
                     {item.type === 'VIDEO' ? (
@@ -1013,6 +1092,118 @@ export function ProductDetailClient({
                 ))}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Notify Me When Available Modal */}
+      {isNotifyOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl relative animate-scale-up border border-slate-100">
+            <button
+              type="button"
+              onClick={() => {
+                setIsNotifyOpen(false);
+                setNotifySuccess(false);
+                setNotifyError('');
+              }}
+              className="absolute top-5 right-5 p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 shrink-0">
+                <Bell className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-base text-slate-900">
+                  Notify Me When Available
+                </h3>
+                <p className="text-xs text-slate-500">
+                  {product.product_name}
+                </p>
+              </div>
+            </div>
+
+            {notifySuccess ? (
+              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-2 text-center">
+                <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto" />
+                <h4 className="font-bold text-sm text-emerald-900">Request Received!</h4>
+                <p className="text-xs text-emerald-700">
+                  Thank you! Our B2B sales team at Tanmayee Technologies will contact you directly at <span className="font-bold">{notifyPhone}</span> as soon as this equipment is ready for dispatch.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setIsNotifyOpen(false)}
+                  className="mt-2 w-full py-2.5 bg-emerald-600 text-white font-bold text-xs rounded-xl hover:bg-emerald-700 transition-colors shadow-sm"
+                >
+                  Done
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleNotifySubmit} className="space-y-4">
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  This model is temporarily out of stock. Leave your mobile number and our technical team will call or WhatsApp you the moment stock arrives with wholesale quotation rates.
+                </p>
+
+                {notifyError && (
+                  <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs font-semibold">
+                    {notifyError}
+                  </div>
+                )}
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Your Name / Business Name (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={notifyName}
+                      onChange={(e) => setNotifyName(e.target.value)}
+                      placeholder="e.g. Ramesh Reddy / Hotel Grand"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:border-brand-500 font-medium"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Mobile Number <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="tel"
+                        required
+                        value={notifyPhone}
+                        onChange={(e) => setNotifyPhone(e.target.value)}
+                        placeholder="e.g. 9876543210"
+                        className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:border-brand-500 font-mono font-bold"
+                      />
+                      <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={notifySubmitting}
+                  className="w-full py-3 bg-gradient-to-r from-amber-600 via-orange-600 to-rose-600 hover:from-amber-700 hover:to-rose-700 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-orange-950/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                >
+                  {notifySubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Submitting Request...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Bell className="w-4 h-4" />
+                      <span>Alert Me When In Stock</span>
+                    </>
+                  )}
+                </button>
+              </form>
+            )}
           </div>
         </div>
       )}

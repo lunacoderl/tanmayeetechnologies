@@ -492,7 +492,7 @@ export function MediaManager({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
-        className={`relative cursor-pointer rounded-3xl border-2 border-dashed p-8 sm:p-12 text-center transition-all ${
+        className={`relative cursor-pointer rounded-xl sm:rounded-3xl border-2 border-dashed p-4 sm:p-12 text-center transition-all ${
           isDragging
             ? 'border-cyan-500 bg-cyan-500/10 scale-[1.01] shadow-xl shadow-cyan-500/10'
             : 'border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-50/50 shadow-sm'
@@ -507,20 +507,20 @@ export function MediaManager({
           className="hidden"
         />
 
-        <div className="max-w-md mx-auto space-y-3">
-          <div className="w-16 h-16 rounded-2xl bg-cyan-50 border border-cyan-100 text-cyan-600 flex items-center justify-center mx-auto shadow-inner">
+        <div className="max-w-md mx-auto space-y-2 sm:space-y-3">
+          <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-cyan-50 border border-cyan-100 text-cyan-600 flex items-center justify-center mx-auto shadow-inner">
             {isUploading ? (
-              <Loader2 className="w-8 h-8 animate-spin text-cyan-600" />
+              <Loader2 className="w-6 h-6 sm:w-8 sm:h-8 animate-spin text-cyan-600" />
             ) : (
-              <UploadCloud className="w-8 h-8 text-cyan-600" />
+              <UploadCloud className="w-6 h-6 sm:w-8 sm:h-8 text-cyan-600" />
             )}
           </div>
 
           <div>
-            <h4 className="font-display font-extrabold text-sm sm:text-base text-slate-800">
+            <h4 className="font-display font-extrabold text-xs sm:text-base text-slate-800">
               {isUploading ? uploadProgressText : 'Drag & Drop Images or Video Here'}
             </h4>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1">
               Supports JPG, PNG, WebP, SVG images & MP4, WebM videos. Direct upload to Supabase bucket.
             </p>
           </div>
@@ -528,30 +528,30 @@ export function MediaManager({
           <button
             type="button"
             disabled={isUploading}
-            className="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow transition-colors"
+            className="inline-flex items-center gap-1.5 sm:gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-[11px] sm:text-xs px-3.5 py-1.5 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl shadow transition-colors"
           >
-            <ImageIcon className="w-4 h-4 text-cyan-400" />
+            <ImageIcon className="w-3.5 h-3.5 text-cyan-400" />
             <span>Select Media Files</span>
           </button>
         </div>
       </div>
 
       {/* Primary Showcase Image Section */}
-      <div className="space-y-3">
+      <div className="space-y-2 sm:space-y-3">
         <div className="flex items-center justify-between">
-          <label className="block text-xs font-bold text-slate-800 flex items-center gap-1.5">
-            <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+          <label className="block text-[11px] sm:text-xs font-bold text-slate-800 flex items-center gap-1.5">
+            <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
             Primary Showcase Thumbnail (Hero Media)
           </label>
-          <span className="text-[11px] text-slate-400">
+          <span className="text-[10px] sm:text-[11px] text-slate-400">
             Fitted in exact container with {previewBackdrop === 'blur' ? 'ambient edge blur' : 'white background'}
           </span>
         </div>
 
         {primaryImageUrl ? (
-          <div className="flex flex-col sm:flex-row gap-5 items-start bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-5 items-start bg-white p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm">
             {/* Exact Container Fitted Box */}
-            <div className="relative w-48 h-48 sm:w-56 sm:h-56 rounded-2xl border-2 border-slate-200 overflow-hidden shrink-0 shadow-md">
+            <div className="relative w-36 h-36 sm:w-56 sm:h-56 mx-auto sm:mx-0 rounded-xl sm:rounded-2xl border-2 border-slate-200 overflow-hidden shrink-0 shadow-md">
               {/* Blurred Edge Backdrop or Pure White */}
               {previewBackdrop === 'blur' ? (
                 <div

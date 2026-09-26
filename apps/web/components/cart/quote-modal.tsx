@@ -102,29 +102,48 @@ export function QuoteModal() {
     const stepTimer3 = setTimeout(() => setCurrentStepIndex(3), 2400);
 
     try {
-      // 1. Generate Quotation
-      const quoteRes: any = await fetchFromApi('/quotations', {
-        method: 'POST',
-        body: JSON.stringify({}),
-      }).catch(() => null);
+      const quotationId = `quote-${Date.now()}`;
+      const quoteNumber = `TT-Q-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`;
 
-      const quotationId = quoteRes?.data?.id || 'demo-quote-id';
-      const quoteNumber =
-        quoteRes?.data?.quotation_number ||
-        `TT-Q-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`;
+      const formattedItems = items.map((i, idx) => {
+        const unitPrice = i.product.reference_price || 0;
+        const brand =
+          (i.product as any).brand?.name ||
+          (i.product.brand_id?.toLowerCase().includes('blue') ? 'Blue Star' : 'Rockwell');
+        return {
+          id: i.product.id || `qi-${Date.now()}-${idx}`,
+          product_id: i.product.id,
+          product_name: i.product.product_name,
+          model_number: i.product.model_number || 'N/A',
+          brand_name: brand,
+          quantity: i.quantity,
+          unit_price: unitPrice,
+          total_price: unitPrice * i.quantity,
+        };
+      });
 
-      // 2. Submit Contact Information & get WhatsApp URL
-      const submitRes: any = await fetchFromApi(`/quotations/${quotationId}/submit`, {
-        method: 'POST',
-        body: JSON.stringify({
-          customer_name: formData.name,
-          customer_phone: formData.phone,
-          customer_email: formData.email,
-          customer_company: formData.company,
-          customer_location: formData.location,
-          customer_notes: formData.notes,
-        }),
-      }).catch(() => null);
+      // 1. Submit to /api/quotations which persists to database and triggers Resend email to admin email
+      try {
+        await fetch('/api/quotations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: quotationId,
+            quotation_number: quoteNumber,
+            customer_name: formData.name,
+            customer_phone: formData.phone,
+            customer_email: formData.email,
+            customer_company: formData.company,
+            customer_location: formData.location,
+            customer_notes: formData.notes,
+            subtotal: estimatedTotal,
+            grand_total: estimatedTotal,
+            items: formattedItems,
+          }),
+        });
+      } catch (apiErr) {
+        console.warn('Quotation endpoint call notice:', apiErr);
+      }
 
       const whatsappPhone = COMPANY.WHATSAPP_NUMBER || '919390115553';
       const lines = [
@@ -193,7 +212,7 @@ export function QuoteModal() {
       setTimeout(() => {
         setSuccessData({
           quoteNumber,
-          whatsappUrl: submitRes?.data?.whatsapp_url || directWaUrl,
+          whatsappUrl: directWaUrl,
         });
         setIsSubmitting(false);
         clearCart();

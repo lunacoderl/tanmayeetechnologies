@@ -50,7 +50,7 @@ export default function HomePage() {
     'Hello Tanmayee Technologies! I am interested in commercial air conditioning and refrigeration solutions for my business.'
   )}`;
 
-  // Comprehensive Categories covering all AC categories & Rockwell refrigeration
+  // Authentic 10 Categories matching official navigation & database taxonomy
   const categories = [
     {
       name: 'Inverter Split ACs',
@@ -59,19 +59,13 @@ export default function HomePage() {
       image: 'https://cdn.shopify.com/s/files/1/0888/8297/0937/files/ic512qnurav_gallery-images-01_6_3.png?v=1721416682',
     },
     {
-      name: 'Fixed Speed ACs',
-      brand: 'Blue Star',
-      href: '/categories/fixed-speed-split-ac',
-      image: 'https://cdn.shopify.com/s/files/1/0888/8297/0937/files/ic518vnurav_gallery-images-01_2_4.png',
-    },
-    {
-      name: 'Cassette ACs',
+      name: 'Commercial Cassette ACs',
       brand: 'Blue Star',
       href: '/categories/commercial-cassette-ac',
       image: '/images/category-cassette-ac.jpg',
     },
     {
-      name: 'Tower / Verticool',
+      name: 'Tower / Verticool ACs',
       brand: 'Blue Star',
       href: '/categories/commercial-verticool-ac',
       image: 'https://cdn.shopify.com/s/files/1/0888/8297/0937/files/Gallery_Image_01_34dedeb0-0b0f-4b52-943c-663947a8555b.png?v=1779168252',
@@ -83,40 +77,40 @@ export default function HomePage() {
       image: 'https://cdn.shopify.com/s/files/1/0888/8297/0937/files/Gallery_Image_01.png?v=1779164122',
     },
     {
-      name: 'Mega Split ACs',
+      name: 'Fixed Speed Split ACs',
       brand: 'Blue Star',
-      href: '/categories/mega-split-ac',
+      href: '/categories/fixed-speed-split-ac',
       image: 'https://cdn.shopify.com/s/files/1/0888/8297/0937/files/ic518vnurav_gallery-images-01_2_4.png',
     },
     {
-      name: 'Green Freezers',
+      name: 'Convertible Green Freezers',
       brand: 'Rockwell',
       href: '/categories/convertible-green-freezer',
       image: 'https://www.rockwell.co.in/cdn/shop/files/GFR250.png',
     },
     {
-      name: 'Curved Glass Freezers',
-      brand: 'Rockwell',
-      href: '/categories/curved-glass-freezer',
-      image: 'https://cdn.shopify.com/s/files/1/0701/1929/3028/files/SFR250.png?v=1763989056',
-    },
-    {
-      name: 'Visi Coolers',
+      name: 'Visi Coolers & Display Fridges',
       brand: 'Rockwell',
       href: '/categories/visi-cooler',
       image: 'https://cdn.shopify.com/s/files/1/0888/8297/0937/files/VC65D.png?v=1727672742',
     },
     {
-      name: 'Water Coolers',
+      name: 'Stainless Steel Water Coolers',
       brand: 'Rockwell',
       href: '/categories/stainless-steel-water-cooler',
       image: 'https://cdn.shopify.com/s/files/1/0701/1929/3028/files/Water_coolar_1.png?v=1752055857',
     },
     {
-      name: 'Ice Makers',
+      name: 'Commercial Ice Makers',
       brand: 'Rockwell',
-      href: '/categories/commercial-ice-machines',
+      href: '/categories/ice-makers',
       image: '/images/category-ice-maker.jpg',
+    },
+    {
+      name: 'Kitchen Chillers & Freezers',
+      brand: 'Rockwell',
+      href: '/categories/commercial-kitchen-refrigeration',
+      image: 'https://cdn.shopify.com/s/files/1/0701/1929/3028/files/SFR250.png?v=1763989056',
     },
   ];
 

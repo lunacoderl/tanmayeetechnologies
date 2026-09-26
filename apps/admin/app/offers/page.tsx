@@ -228,7 +228,7 @@ export default function AdminOffersPage() {
   const timeLimitedCount = offers.filter((o) => !o.is_permanent).length;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-8">
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed top-6 right-6 z-50 bg-slate-900 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl border border-slate-700 flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
@@ -238,15 +238,15 @@ export default function AdminOffersPage() {
       )}
 
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <span className="text-xs font-bold text-cyan-600 uppercase tracking-wider">
-            Commercial Promotions & B2B Rules
+          <span className="text-[10px] sm:text-xs font-bold text-cyan-600 uppercase tracking-wider">
+            Commercial Promotions &amp; B2B Rules
           </span>
-          <h1 className="font-display font-black text-2xl sm:text-3xl text-slate-900">
-            Offers & Discount Rules Studio
+          <h1 className="font-display font-black text-xl sm:text-2xl lg:text-3xl text-slate-900">
+            Offers &amp; Discount Rules Studio
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1">
             Manage volume pricing tiers, seasonal discount campaigns, and permanent B2B partner incentives.
           </p>
         </div>
@@ -254,7 +254,7 @@ export default function AdminOffersPage() {
         <button
           type="button"
           onClick={handleOpenAdd}
-          className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-extrabold text-xs py-3 px-5 rounded-2xl shadow-md shadow-blue-500/25 transition-all hover:scale-102 active:scale-98"
+          className="inline-flex items-center gap-1.5 sm:gap-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-extrabold text-xs py-2 px-3.5 sm:py-2.5 sm:px-5 rounded-xl sm:rounded-2xl shadow-md shadow-blue-500/25 transition-all self-start sm:self-auto cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>+ Create New Offer</span>
@@ -262,42 +262,42 @@ export default function AdminOffersPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-3xl border border-slate-200/90 shadow-sm space-y-1">
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Rules</span>
-          <div className="font-display font-black text-2xl sm:text-3xl text-slate-900">{offers.length}</div>
-          <div className="text-[11px] text-slate-500 font-medium">Configured in system</div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
+        <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200/90 shadow-sm space-y-1">
+          <span className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">Total Rules</span>
+          <div className="font-display font-black text-xl sm:text-3xl text-slate-900">{offers.length}</div>
+          <div className="text-[10px] sm:text-[11px] text-slate-500 font-medium">In system</div>
         </div>
 
-        <div className="bg-white p-5 rounded-3xl border border-emerald-200/80 bg-emerald-50/20 shadow-sm space-y-1">
-          <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider">Active Offers</span>
-          <div className="font-display font-black text-2xl sm:text-3xl text-emerald-700">{activeCount}</div>
-          <div className="text-[11px] text-emerald-600 font-medium">Currently applying</div>
+        <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-emerald-200/80 bg-emerald-50/20 shadow-sm space-y-1">
+          <span className="text-[10px] sm:text-xs font-bold text-emerald-600 uppercase tracking-wider">Active</span>
+          <div className="font-display font-black text-xl sm:text-3xl text-emerald-700">{activeCount}</div>
+          <div className="text-[10px] sm:text-[11px] text-emerald-600 font-medium">Applying now</div>
         </div>
 
-        <div className="bg-white p-5 rounded-3xl border border-indigo-200/80 bg-indigo-50/20 shadow-sm space-y-1">
-          <span className="text-xs font-bold text-indigo-600 uppercase tracking-wider">Permanent Offers</span>
-          <div className="font-display font-black text-2xl sm:text-3xl text-indigo-700">{permanentCount}</div>
-          <div className="text-[11px] text-indigo-600 font-medium">No expiry date</div>
+        <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-indigo-200/80 bg-indigo-50/20 shadow-sm space-y-1">
+          <span className="text-[10px] sm:text-xs font-bold text-indigo-600 uppercase tracking-wider">Permanent</span>
+          <div className="font-display font-black text-xl sm:text-3xl text-indigo-700">{permanentCount}</div>
+          <div className="text-[10px] sm:text-[11px] text-indigo-600 font-medium">No expiry</div>
         </div>
 
-        <div className="bg-white p-5 rounded-3xl border border-amber-200/80 bg-amber-50/20 shadow-sm space-y-1">
-          <span className="text-xs font-bold text-amber-600 uppercase tracking-wider">Time-Limited</span>
-          <div className="font-display font-black text-2xl sm:text-3xl text-amber-700">{timeLimitedCount}</div>
-          <div className="text-[11px] text-amber-600 font-medium">Date-constrained campaigns</div>
+        <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-amber-200/80 bg-amber-50/20 shadow-sm space-y-1">
+          <span className="text-[10px] sm:text-xs font-bold text-amber-600 uppercase tracking-wider">Time-Limited</span>
+          <div className="font-display font-black text-xl sm:text-3xl text-amber-700">{timeLimitedCount}</div>
+          <div className="text-[10px] sm:text-[11px] text-amber-600 font-medium">Campaigns</div>
         </div>
       </div>
 
       {/* Filters & Search */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div className="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5 sm:top-3" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by code, title, or terms..."
-            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-cyan-500 focus:bg-white"
+            className="w-full pl-9 pr-3 py-1.5 sm:py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-cyan-500 focus:bg-white"
           />
         </div>
 
@@ -306,7 +306,7 @@ export default function AdminOffersPage() {
           <select
             value={scopeFilter}
             onChange={(e) => setScopeFilter(e.target.value)}
-            className="w-full sm:w-auto text-xs bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl focus:outline-none focus:border-cyan-500 font-semibold text-slate-700"
+            className="w-full sm:w-auto text-xs bg-slate-50 border border-slate-200 px-3 py-1.5 sm:py-2 rounded-xl focus:outline-none focus:border-cyan-500 font-semibold text-slate-700"
           >
             <option value="ALL">All Applicable Scopes</option>
             <option value="ALL_PRODUCTS">All Products</option>
@@ -320,7 +320,7 @@ export default function AdminOffersPage() {
       </div>
 
       {/* Offers Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
         {filteredOffers.map((offer) => {
           const isExpired =
             !offer.is_permanent && offer.end_date && new Date(offer.end_date) < new Date();
@@ -328,7 +328,7 @@ export default function AdminOffersPage() {
           return (
             <div
               key={offer.id}
-              className={`bg-white rounded-3xl border transition-all duration-300 p-6 shadow-sm flex flex-col justify-between relative overflow-hidden group ${
+              className={`bg-white rounded-2xl sm:rounded-3xl border transition-all duration-300 p-4 sm:p-6 shadow-sm flex flex-col justify-between relative overflow-hidden group ${
                 !offer.is_active
                   ? 'border-slate-200 opacity-60 bg-slate-50/50'
                   : 'border-slate-200/90 hover:border-cyan-400 hover:shadow-xl'

@@ -1,8 +1,8 @@
-# Current Task: Storefront Product Card Live Primary Image Resolution & Seed Elimination (BUG-016)
+# Current Task: Admin Portal Mobile Version, Closable Navigation & Decreased Sizing (FEAT-020)
 
 **Status:** COMPLETED  
 **Assignee:** Antigravity AI Agent  
-**Goal:** Eliminate stale hardcoded seed images appearing on product cards across the public website (`/products`, `/brands/[slug]`, `/categories/[slug]`, `/search`, Recommended Products, Header Search dropdown), ensure user-designated primary images from Supabase live database render across all product cards without touching or risking user data (10+ images uploaded per product up to 151 products), and ensure zero cache leakage.
+**Goal:** Make the Tanmayee Technologies admin portal fully responsive for mobile devices, implement closable navigation with mobile hamburger drawer and backdrop, and decrease sizes across all admin pages (typography, cards, tables, buttons, forms, badges) so administrators can view and manage products, quotes, and services properly on mobile devices.
 
 ---
 

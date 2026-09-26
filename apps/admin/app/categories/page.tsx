@@ -38,22 +38,22 @@ export default function AdminCategoriesPage() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="font-display font-black text-2xl sm:text-3xl text-slate-900">
-            Categories & EAV Attributes
+          <h1 className="font-display font-black text-xl sm:text-2xl lg:text-3xl text-slate-900">
+            Categories &amp; EAV Attributes
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
             Organize catalog hierarchy and define dynamic technical specification schemas.
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-start">
         {/* Left Column: Category Hierarchy */}
-        <div className="lg:col-span-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <div className="lg:col-span-4 bg-white p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm space-y-3 sm:space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <h2 className="font-bold text-sm text-slate-900 flex items-center gap-2">
               <FolderTree className="w-4 h-4 text-brand-600" />
@@ -104,35 +104,35 @@ export default function AdminCategoriesPage() {
         </div>
 
         {/* Right Column: Selected Category Details & Dynamic EAV Specs */}
-        <div className="lg:col-span-8 space-y-6">
+        <div className="lg:col-span-8 space-y-4 sm:space-y-6">
           {/* Category Overview Card */}
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div className="bg-white p-3.5 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm space-y-3 sm:space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <div>
-                <h3 className="font-extrabold text-base text-slate-900">
+                <h3 className="font-extrabold text-sm sm:text-base text-slate-900">
                   {selectedCategory.name}
                 </h3>
-                <span className="text-xs font-mono text-slate-400">
+                <span className="text-[10px] sm:text-xs font-mono text-slate-400">
                   Slug: /{selectedCategory.slug} • {getCategoryCount(selectedCategory)} Products Live
                 </span>
               </div>
             </div>
 
-            <p className="text-xs text-slate-600 leading-relaxed">
+            <p className="text-[11px] sm:text-xs text-slate-600 leading-relaxed">
               {selectedCategory.description}
             </p>
 
             {/* Subcategories list */}
             {subCategories.length > 0 && (
               <div>
-                <div className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">
+                <div className="text-[10px] sm:text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">
                   Subcategories
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5 sm:gap-2">
                   {subCategories.map((sc) => (
                     <span
                       key={sc.id}
-                      className="text-xs bg-slate-100 border border-slate-200 text-slate-700 px-3 py-1.5 rounded-xl font-semibold"
+                      className="text-[10px] sm:text-xs bg-slate-100 border border-slate-200 text-slate-700 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl font-semibold"
                     >
                       {sc.name} ({sc.product_count})
                     </span>
@@ -143,7 +143,7 @@ export default function AdminCategoriesPage() {
           </div>
 
           {/* Dynamic Category Attributes Matrix */}
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div className="bg-white p-3.5 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm space-y-3 sm:space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">

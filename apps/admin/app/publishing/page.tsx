@@ -53,14 +53,14 @@ export default function AdminPublishingPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="font-display font-black text-2xl sm:text-3xl text-slate-900">
-            Publishing Engine & Public Snapshot
+          <h1 className="font-display font-black text-xl sm:text-2xl lg:text-3xl text-slate-900">
+            Publishing Engine &amp; Public Snapshot
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
             Synchronize master catalog modifications with the high-performance public cache and materialized view.
           </p>
         </div>
@@ -68,22 +68,22 @@ export default function AdminPublishingPage() {
         <button
           onClick={handleTriggerPublish}
           disabled={isPublishing}
-          className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs py-2.5 px-5 rounded-xl shadow transition-all disabled:opacity-50 self-start sm:self-auto"
+          className="inline-flex items-center gap-1.5 sm:gap-2 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs py-2 px-3.5 sm:py-2.5 sm:px-5 rounded-xl shadow transition-all disabled:opacity-50 self-start sm:self-auto cursor-pointer"
         >
-          <RefreshCw className={`w-4 h-4 ${isPublishing ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isPublishing ? 'animate-spin' : ''}`} />
           <span>{isPublishing ? 'Rebuilding Snapshot...' : 'Publish Snapshot to Live Web'}</span>
         </button>
       </div>
 
       {publishSuccess && (
-        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-between text-xs text-emerald-800 font-bold">
+        <div className="p-3 sm:p-4 bg-emerald-50 border border-emerald-200 rounded-xl sm:rounded-2xl flex items-center justify-between text-xs text-emerald-800 font-bold">
           <span className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            Public snapshot rebuilt successfully! All {SEED_PRODUCTS.length} models and prices are refreshed on the public website.
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>Public snapshot refreshed! All {SEED_PRODUCTS.length} models and prices updated.</span>
           </span>
           <button
             onClick={() => setPublishSuccess(false)}
-            className="text-emerald-700 hover:text-emerald-900"
+            className="text-emerald-700 hover:text-emerald-900 text-xs font-bold"
           >
             Dismiss
           </button>
@@ -91,41 +91,41 @@ export default function AdminPublishingPage() {
       )}
 
       {/* Status Overview Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-6">
+        <div className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm space-y-1.5 sm:space-y-2">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold uppercase tracking-wider">Live Snapshot Status</span>
+            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider">Live Snapshot Status</span>
             <Globe className="w-4 h-4 text-emerald-600" />
           </div>
-          <div className="text-2xl font-display font-black text-emerald-600 flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
+          <div className="text-xl sm:text-2xl font-display font-black text-emerald-600 flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
             OPERATIONAL
           </div>
-          <div className="text-[11px] text-slate-500">
+          <div className="text-[10px] sm:text-[11px] text-slate-500">
             Version: {publishStatus?.version || '2026.09.22-v1'}
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+        <div className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm space-y-1.5 sm:space-y-2">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold uppercase tracking-wider">Published Models</span>
+            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider">Published Models</span>
             <Server className="w-4 h-4 text-brand-600" />
           </div>
-          <div className="text-2xl font-display font-black text-slate-900">
+          <div className="text-xl sm:text-2xl font-display font-black text-slate-900">
             {publishStatus?.products_published || SEED_PRODUCTS.length} Models
           </div>
-          <div className="text-[11px] text-slate-500">Blue Star & Rockwell commercial catalog</div>
+          <div className="text-[10px] sm:text-[11px] text-slate-500">Blue Star &amp; Rockwell commercial catalog</div>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+        <div className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm space-y-1.5 sm:space-y-2">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold uppercase tracking-wider">Edge CDN Cache</span>
+            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider">Edge CDN Cache</span>
             <Zap className="w-4 h-4 text-amber-500" />
           </div>
-          <div className="text-2xl font-display font-black text-slate-900">
+          <div className="text-xl sm:text-2xl font-display font-black text-slate-900">
             Sub-50ms
           </div>
-          <div className="text-[11px] text-slate-500">Zero database strain during peak buyer traffic</div>
+          <div className="text-[10px] sm:text-[11px] text-slate-500">Zero database strain during peak traffic</div>
         </div>
       </div>
 

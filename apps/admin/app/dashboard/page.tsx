@@ -36,28 +36,28 @@ export default function AdminDashboardPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-8">
       {/* Top Welcome Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <span className="text-xs font-bold text-brand-600 uppercase tracking-wider">
+          <span className="text-[10px] sm:text-xs font-bold text-brand-600 uppercase tracking-wider">
             Commercial Overview
           </span>
-          <h1 className="font-display font-black text-2xl sm:text-3xl text-slate-900">
+          <h1 className="font-display font-black text-xl sm:text-2xl lg:text-3xl text-slate-900">
             Platform Admin Dashboard
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
             Real-time management of product models, quotations, and service requests.
           </p>
         </div>
 
         {/* Quick Actions */}
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <button
             type="button"
             onClick={handleRefreshCatalog}
             disabled={publishing}
-            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 px-3 sm:py-2.5 sm:px-4 rounded-xl shadow transition-colors disabled:opacity-50"
           >
             <Globe className="w-3.5 h-3.5" />
             <span>{publishing ? 'Publishing...' : 'Publish Catalog Snapshot'}</span>
@@ -65,7 +65,7 @@ export default function AdminDashboardPage() {
 
           <Link
             href="/products/new"
-            className="flex items-center gap-1.5 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow transition-colors"
+            className="flex items-center gap-1.5 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs py-2 px-3 sm:py-2.5 sm:px-4 rounded-xl shadow transition-colors"
           >
             <span>+ Add Product</span>
           </Link>
@@ -79,16 +79,16 @@ export default function AdminDashboardPage() {
       )}
 
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-2">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-6">
+        <div className="bg-white p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200 shadow-sm space-y-1 sm:space-y-1.5">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold uppercase tracking-wider">Catalog Inventory</span>
-            <Package className="w-5 h-5 text-brand-600" />
+            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider">Catalog</span>
+            <Package className="w-4 h-4 sm:w-5 sm:h-5 text-brand-600" />
           </div>
-          <div className="font-display font-black text-3xl text-slate-900">
+          <div className="font-display font-black text-xl sm:text-3xl text-slate-900">
             {SEED_PRODUCTS.length}
           </div>
-          <div className="text-[11px] text-slate-500 flex items-center gap-1">
+          <div className="text-[10px] sm:text-[11px] text-slate-500 flex flex-wrap items-center gap-1">
             <span className="text-blue-600 font-bold">
               {SEED_PRODUCTS.filter(p => (p.brand_name || '').toLowerCase().includes('blue star')).length} Blue Star
             </span>{' '}
@@ -99,40 +99,40 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-2">
+        <div className="bg-white p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200 shadow-sm space-y-1 sm:space-y-1.5">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold uppercase tracking-wider">Quotations Desk</span>
-            <FileText className="w-5 h-5 text-indigo-600" />
+            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider">Quotations</span>
+            <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />
           </div>
-          <div className="font-display font-black text-3xl text-slate-900">Live</div>
-          <div className="text-[11px] text-emerald-600 font-bold flex items-center gap-1">
-            <TrendingUp className="w-3.5 h-3.5" /> Direct WhatsApp & Portal Sync
+          <div className="font-display font-black text-xl sm:text-3xl text-slate-900">Live</div>
+          <div className="text-[10px] sm:text-[11px] text-emerald-600 font-bold flex items-center gap-1 truncate">
+            <TrendingUp className="w-3 h-3 shrink-0" /> WhatsApp &amp; Desk Sync
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-2">
+        <div className="bg-white p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200 shadow-sm space-y-1 sm:space-y-1.5">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold uppercase tracking-wider">Authorizations</span>
-            <Wrench className="w-5 h-5 text-amber-600" />
+            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider">Authorizations</span>
+            <Wrench className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
           </div>
-          <div className="font-display font-black text-3xl text-slate-900">2 Brands</div>
-          <div className="text-[11px] text-slate-500">Authorized Sales & Service Dist.</div>
+          <div className="font-display font-black text-xl sm:text-3xl text-slate-900">2 Brands</div>
+          <div className="text-[10px] sm:text-[11px] text-slate-500 truncate">Sales &amp; Service Dist.</div>
         </div>
 
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-2">
+        <div className="bg-white p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200 shadow-sm space-y-1 sm:space-y-1.5">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold uppercase tracking-wider">Google Rating</span>
-            <Sparkles className="w-5 h-5 text-amber-500" />
+            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider">Reviews</span>
+            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" />
           </div>
-          <div className="font-display font-black text-3xl text-slate-900">4.6★</div>
-          <div className="text-[11px] text-slate-500">98 Verified Google Reviews</div>
+          <div className="font-display font-black text-xl sm:text-3xl text-slate-900">4.6★</div>
+          <div className="text-[10px] sm:text-[11px] text-slate-500 truncate">98 Google Reviews</div>
         </div>
       </div>
 
       {/* Quick Launchpad & Catalog Summary */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Blue Star Summary */}
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+        <div className="bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200 shadow-sm space-y-3 sm:space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div className="font-bold text-slate-900 text-sm flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-blue-600" />
@@ -168,7 +168,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Rockwell Summary */}
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+        <div className="bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200 shadow-sm space-y-3 sm:space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div className="font-bold text-slate-900 text-sm flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-emerald-600" />

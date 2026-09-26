@@ -237,6 +237,16 @@ export function mapDbProductToUnified(row: any): any {
         }))
     : (matchingSeed?.attributes || []);
 
+  // Availability check
+  const availAttr = attributes.find((a: any) =>
+    (a.name || a.attribute_name || '').toLowerCase() === 'availability'
+  );
+  const isExplicitlyUnavailable =
+    row.is_available === false ||
+    row.in_stock === false ||
+    (availAttr && (availAttr.value === 'CURRENTLY_NOT_AVAILABLE' || availAttr.attribute_value === 'CURRENTLY_NOT_AVAILABLE' || availAttr.value === 'OUT_OF_STOCK'));
+  const isAvailable = !isExplicitlyUnavailable;
+
   return {
     id: row.id,
     slug: row.slug,
@@ -244,9 +254,12 @@ export function mapDbProductToUnified(row: any): any {
     model_number: row.model_number || matchingSeed?.model_number || '',
     brand_id: row.brand_id,
     category_id: row.category_id,
+    subcategory_id: row.subcategory_id || matchingSeed?.subcategory_id || null,
     brand_name: brandName,
     category_name: categoryName,
     status: row.status || 'PUBLISHED',
+    is_available: isAvailable,
+    in_stock: isAvailable,
     reference_price: row.reference_price || row.price_range_min || 0,
     dealer_price: row.price_range_min || row.reference_price || 0,
     base_mrp: row.price_range_max || row.reference_price || 0,
@@ -449,6 +462,9 @@ export async function saveCustomProduct(productPayload: any): Promise<{ success:
     if (updatedPayload.model_number) {
       productData.model_number = updatedPayload.model_number;
     }
+    if (updatedPayload.subcategory_id) {
+      productData.subcategory_id = updatedPayload.subcategory_id;
+    }
 
     if (targetId && existingProductRow) {
       const { error: updateErr } = await supabase.from('products').update(productData).eq('id', targetId);
@@ -465,6 +481,7 @@ export async function saveCustomProduct(productPayload: any): Promise<{ success:
         ...productData,
         brand_id: updatedPayload.brand_id || 'b0000001-0000-0000-0000-000000000001',
         category_id: updatedPayload.category_id || 'c0000001-0000-0000-0000-000000000001',
+        subcategory_id: updatedPayload.subcategory_id || null,
         created_at: now,
       };
 
@@ -532,11 +549,23 @@ export async function saveCustomProduct(productPayload: any): Promise<{ success:
         }
       }
 
-      // 4. Synchronize attributes if provided
-      if (Array.isArray(updatedPayload.attributes) && updatedPayload.attributes.length > 0) {
+      // 4. Synchronize attributes if provided + availability status
+      let rawAttrs = Array.isArray(updatedPayload.attributes) ? [...updatedPayload.attributes] : [];
+      if (updatedPayload.is_available === false || updatedPayload.in_stock === false) {
+        rawAttrs = rawAttrs.filter((a: any) => (a.attribute_name || a.name || '').toLowerCase() !== 'availability');
+        rawAttrs.push({
+          attribute_name: 'Availability',
+          attribute_value: 'CURRENTLY_NOT_AVAILABLE',
+          attribute_unit: '',
+        });
+      } else if (updatedPayload.is_available === true || updatedPayload.in_stock === true) {
+        rawAttrs = rawAttrs.filter((a: any) => (a.attribute_name || a.name || '').toLowerCase() !== 'availability');
+      }
+
+      if (rawAttrs.length > 0) {
         await supabase.from('product_attributes').delete().eq('product_id', targetId);
 
-        const attrsToInsert = updatedPayload.attributes
+        const attrsToInsert = rawAttrs
           .filter((a: any) => (a.attribute_name || a.name) && (a.attribute_value || a.value))
           .map((a: any, i: number) => ({
             product_id: targetId,
